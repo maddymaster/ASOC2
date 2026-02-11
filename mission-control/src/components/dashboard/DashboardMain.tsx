@@ -21,23 +21,45 @@ export default function DashboardMain() {
 
     useEffect(() => {
         if (activeTab === 'lead-gen' && strategy) {
-            const fetchLeads = async () => {
+            const fetchAndDraft = async () => {
                 try {
-                    // Show loading state if needed? For now just fetch.
+                    // 1. Fetch Leads
                     const res = await fetch('/api/apollo', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ strategy })
                     });
                     const data = await res.json();
-                    if (data.success) {
+
+                    if (data.success && data.leads) {
                         setLeads(data.leads);
+
+                        // 2. Automated Enrichment & Drafting (Top 10)
+                        // Only trigger if we haven't already for this session/strategy (checking if leads exist might be enough for now, or just firing)
+                        // For this demo, we'll fire every time we enter the tab with a strategy to ensure it works.
+                        const topLeads = data.leads.slice(0, 5); // Limit to 5-10 to avoid timeouts/rate limits in demo
+
+                        // Async drafting in background
+                        topLeads.forEach(async (lead: any) => {
+                            await fetch('/api/email/draft', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    leadId: lead.id,
+                                    companyName: lead.company,
+                                    contactName: lead.name,
+                                    role: lead.title,
+                                    rationale: strategy.rationale,
+                                    valueProp: "AI-Driven Sales Operations" // Could come from strategy too if added
+                                })
+                            });
+                        });
                     }
                 } catch (e) {
-                    console.error("Failed to fetch leads", e);
+                    console.error("Pipeline Error:", e);
                 }
             };
-            fetchLeads();
+            fetchAndDraft();
         }
     }, [activeTab, strategy, setLeads]);
 

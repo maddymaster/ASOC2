@@ -51,7 +51,7 @@ export const DeepResearchService = {
     /**
      * Generates a personalized email draft using the news context.
      */
-    generateDraft: async (leadId: string, companyName: string, contactName: string, role: string) => {
+    generateDraft: async (leadId: string, companyName: string, contactName: string, role: string, rationale?: string, valueProp?: string) => {
         const news = await DeepResearchService.findCompanyNews(companyName);
 
         const systemPrompt = `
@@ -61,11 +61,12 @@ export const DeepResearchService = {
             Write a "First Touch" email to a prospect.
             
             RULES:
-            1. The email MUST reference specific recent news from the context provided.
-            2. Connect the news to our value proposition (ASSUME we sell "Mission Control", an AI Sales Operation Platform).
-            3. Keep it under 150 words.
-            4. Tone: Professional, slightly casual, not salesy. "Helping, not selling".
-            5. Subject line must be catchy and relevant to the news.
+            1. The email MUST reference specific recent news from the context provided (if available).
+            2. Connect the news to our value proposition (Use the provided "Strategy Value Prop" if available).
+            3. Address the specific "Why we targeted them" (Rationale).
+            4. Keep it under 150 words.
+            5. Tone: Professional, slightly casual, not salesy. "Helping, not selling".
+            6. Subject line must be catchy and relevant to the news.
             
             OUTPUT FORMAT:
             JSON object: { "subject": "...", "body": "..." }
@@ -73,6 +74,9 @@ export const DeepResearchService = {
 
         const userPrompt = `
             Prospect: ${contactName}, ${role} at ${companyName}.
+            
+            Strategy Rationale: ${rationale || "N/A"}
+            Value Proposition: ${valueProp || "AI Sales Automation"}
             
             Recent News Context:
             ${JSON.stringify(news, null, 2)}
