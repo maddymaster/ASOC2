@@ -23,6 +23,7 @@ export interface Strategy {
     companySize: string;
     targetRole?: string;
     domain?: string;
+    rationale?: string;
 }
 
 export interface EmailDraft {
@@ -81,6 +82,8 @@ interface MissionControlContextType {
     }>>;
     isStrategyApproved: boolean;
     setStrategyApproved: (approved: boolean) => void;
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
 }
 
 export interface PRDAnalysisResult {
@@ -121,6 +124,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         inboundReceptionist: false
     });
     const [isStrategyApproved, setStrategyApproved] = useState(false);
+    const [activeTab, setActiveTab] = useState("lead-gen");
 
     const addMessage = (msg: Message) => {
         setMessages((prev) => [...prev, msg]);
@@ -152,7 +156,8 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             resetStrategy,
             analysisHistory, addToHistory,
             campaignConfig, setCampaignConfig,
-            isStrategyApproved, setStrategyApproved
+            isStrategyApproved, setStrategyApproved,
+            activeTab, setActiveTab
         }}>
             {children}
         </MissionControlContext.Provider>

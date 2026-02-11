@@ -14,9 +14,32 @@ import { CampaignWizardModal } from "./CampaignWizardModal";
 import { EmailLaboratory } from "./EmailLaboratory";
 import { StrategyCanvas } from "./StrategyCanvas";
 import { UserNav } from "./UserNav";
+import { useEffect } from "react";
 
 export default function DashboardMain() {
-    const { leads, strategy, setActiveCall, setCallHistory } = useMissionControl();
+    const { leads, strategy, setActiveCall, setCallHistory, activeTab, setActiveTab, setLeads } = useMissionControl();
+
+    useEffect(() => {
+        if (activeTab === 'lead-gen' && strategy) {
+            const fetchLeads = async () => {
+                try {
+                    // Show loading state if needed? For now just fetch.
+                    const res = await fetch('/api/apollo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ strategy })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setLeads(data.leads);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch leads", e);
+                }
+            };
+            fetchLeads();
+        }
+    }, [activeTab, strategy, setLeads]);
 
     const handleCall = async (lead: any) => {
         console.log("Calling", lead.name);
@@ -71,13 +94,13 @@ export default function DashboardMain() {
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-muted/20">
-            <div className="p-6 pb-2">
+        <div className="w-full h-full flex flex-col bg-muted/20 overflow-hidden">
+            <div className="p-6 pb-2 shrink-0">
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Sales Dashboard</h2>
             </div>
 
-            <Tabs defaultValue="lead-gen" className="flex-1 flex flex-col px-6 pb-6">
-                <div className="flex justify-between items-center mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col px-6 pb-6 overflow-hidden">
+                <div className="flex justify-between items-center mb-6 shrink-0">
                     <TabsList className="grid w-[500px] grid-cols-4">
                         <TabsTrigger value="strategy">Strategy</TabsTrigger>
                         <TabsTrigger value="email-lab">Email Lab</TabsTrigger>

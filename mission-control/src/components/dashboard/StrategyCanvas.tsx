@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export function StrategyCanvas() {
-    const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis } = useMissionControl();
+    const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis, setActiveTab } = useMissionControl();
 
     if (!expertAnalysis && analysisHistory.length === 0) {
         return (
@@ -32,8 +32,10 @@ export function StrategyCanvas() {
             geo: "Global",
             companySize: "Mid-Market",
             targetRole: sector.targetRoles[0],
-            domain: ""
+            domain: "",
+            rationale: sector.rationale
         });
+        setActiveTab("lead-gen");
     };
 
     return (
