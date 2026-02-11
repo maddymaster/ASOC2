@@ -84,6 +84,8 @@ interface MissionControlContextType {
     setStrategyApproved: (approved: boolean) => void;
     activeTab: string;
     setActiveTab: (tab: string) => void;
+    selectedSector: string | null;
+    setSelectedSector: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export interface PRDAnalysisResult {
@@ -126,6 +128,8 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     const [isStrategyApproved, setStrategyApproved] = useState(false);
     const [activeTab, setActiveTab] = useState("lead-gen");
 
+    const [selectedSector, setSelectedSector] = useState<string | null>(null);
+
     const addMessage = (msg: Message) => {
         setMessages((prev) => [...prev, msg]);
     };
@@ -137,7 +141,16 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     const resetStrategy = () => {
         setExpertAnalysis(null);
         setStrategy(null);
+        setSelectedSector(null);
         setStrategyApproved(false);
+        setLeads([]);
+        setMessages([
+            {
+                role: 'assistant',
+                content: "Hello! I'm your Mission Control assistant. Upload your PRD or tell me about your service to generate a targeted lead strategy."
+            }
+        ]);
+        setAnalysisHistory([]); // Optional: Keep history or clear? User said "Reset state", usually current active state. Keeping history sidebar might be nice but let's clear active session vars.
     };
 
     const addToHistory = (analysis: PRDAnalysisResult) => {
@@ -149,6 +162,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             messages, addMessage,
             leads, setLeads,
             strategy, setStrategy,
+            selectedSector, setSelectedSector,
             emailQueue, setEmailQueue, updateEmail,
             activeCall, setActiveCall,
             callHistory, setCallHistory,

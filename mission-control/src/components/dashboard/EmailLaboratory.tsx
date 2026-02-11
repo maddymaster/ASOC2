@@ -109,12 +109,32 @@ export function EmailLaboratory() {
 
     const handleSend = async () => {
         if (!selectedDraft) return;
+
+        const sendPromise = async () => {
+            // 1. Send via API
+            const res = await fetch('/api/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: selectedDraft.Lead?.email,
+                    subject: selectedDraft.subject,
+                    html: selectedDraft.body.replace(/\n/g, '<br/>'), // Simple formatting
+                    // We rely on Env vars for SMTP/Resend creds to keep frontend secure
+                })
+            });
+
+            if (!res.ok) throw new Error("Failed to send email Provider");
+
+            // 2. Update DB Status
+            await handleUpdate(selectedDraft.id, { status: 'SENT' });
+        };
+
         toast.promise(
-            handleUpdate(selectedDraft.id, { status: 'SENT' }),
+            sendPromise(),
             {
-                loading: 'Sending...',
-                success: 'Email Sent!',
-                error: 'Failed to send'
+                loading: 'Dispatching via SMTP/Resend...',
+                success: 'Email Sent Successfully!',
+                error: 'Failed to dispatch email'
             }
         );
     };
@@ -146,8 +166,8 @@ export function EmailLaboratory() {
                                 key={draft.id}
                                 onClick={() => setSelectedDraft(draft)}
                                 className={`p-4 rounded-lg cursor-pointer transition-colors border ${selectedDraft?.id === draft.id
-                                        ? 'bg-accent border-primary/50'
-                                        : 'hover:bg-accent/50 border-transparent'
+                                    ? 'bg-accent border-primary/50'
+                                    : 'hover:bg-accent/50 border-transparent'
                                     }`}
                             >
                                 <div className="flex justify-between items-start mb-1">

@@ -31,7 +31,8 @@ export function CampaignWizardModal() {
         campaignConfig,
         setCampaignConfig,
         isStrategyApproved,
-        setStrategyApproved
+        setStrategyApproved,
+        resetStrategy
     } = useMissionControl();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,7 +152,17 @@ export function CampaignWizardModal() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700">
+                <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={() => {
+                        resetStrategy();
+                        setStep("upload");
+                        setFile(null);
+                        setAnalysisProgress(0);
+                    }}
+                >
                     <Plus className="h-4 w-4 mr-2" /> New Campaign
                 </Button>
             </DialogTrigger>

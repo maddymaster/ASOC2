@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export function StrategyCanvas() {
-    const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis, setActiveTab } = useMissionControl();
+    const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis, setActiveTab, setSelectedSector } = useMissionControl();
 
     if (!expertAnalysis && analysisHistory.length === 0) {
         return (
@@ -27,6 +27,7 @@ export function StrategyCanvas() {
     const { summary, sectors } = activeAnalysis;
 
     const handleApplyStrategy = (sector: any) => {
+        setSelectedSector(sector.sector);
         setStrategy({
             industry: sector.sector,
             geo: "Global",
