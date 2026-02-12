@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
         Analyze the following Product Requirement Document (PRD) or product description.
@@ -71,7 +71,15 @@ export async function POST(request: Request) {
         // Clean markdown code blocks if present
         jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
 
-        const analysis = JSON.parse(jsonStr);
+        let analysis;
+        try {
+            analysis = JSON.parse(jsonStr);
+        } catch (e) {
+            console.error("JSON Parse Error:", e);
+            console.log("Raw Response:", jsonStr);
+            // Fallback or retry logic could go here
+            throw new Error("Failed to parse AI response as JSON");
+        }
 
         return NextResponse.json({ success: true, analysis });
 
