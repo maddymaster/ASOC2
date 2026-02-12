@@ -1,9 +1,7 @@
 import OpenAI from 'openai';
 import { prisma } from './prisma';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+// const openai = new OpenAI({ ... }); // Removed top-level init
 
 export class DeepResearchService {
     static async generateDraft(
@@ -23,6 +21,9 @@ export class DeepResearchService {
         let emailBody = "";
         try {
             if (process.env.OPENAI_API_KEY) {
+                const openai = new OpenAI({
+                    apiKey: process.env.OPENAI_API_KEY,
+                });
                 const completion = await openai.chat.completions.create({
                     messages: [{ role: "user", content: prompt }],
                     model: "gpt-4-turbo",
