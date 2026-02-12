@@ -104,4 +104,3 @@ model Inquiry {
   status    String   @default("NEW") // NEW, CONTACTED, ARCHIVED
   createdAt DateTime @default(now())
 }
-binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
