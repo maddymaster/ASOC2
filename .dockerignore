@@ -12,3 +12,4 @@ test-*.ts
 DEV_README.md
 DEMO_GUIDE.md
 documents
+env.yaml
