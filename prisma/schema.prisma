@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CallLog {
+  id           String   @id // Maps to Retell call_id
+  agentId      String
+  leadId       String?
+  Lead         Lead?    @relation(fields: [leadId], references: [id])
+  status       String // completed, ongoing
+  transcript   String?
+  sentiment    String? // positive, neutral, negative
+  duration     Int?
+  summary      String?
+  recordingUrl String?
+  userIntent   String? // booked, interested, follow-up, not-interested
+  coachingData String? // JSON string: { win, gap, score }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String // e.g., "EXPORT_LEADS", "UPDATE_API_KEY"
+  userId    String // e.g., "admin-user", "sales-exec-1"
+  details   String // JSON string or description
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        String        @id @default(uuid())
+  email     String        @unique
+  name      String
+  role      String        @default("SALES_AGENT") // SUPER_ADMIN, ADMIN, SALES_AGENT
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  sessions  ChatSession[]
+}
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String
+  title     String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+  User      User          @relation(fields: [userId], references: [id])
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String
+  role      String // 'user' | 'assistant'
+  content   String
+  createdAt DateTime    @default(now())
+  Session   ChatSession @relation(fields: [sessionId], references: [id])
+}
+
+model Lead {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String
+  company     String?
+  role        String?
+  phone       String?
+  status      String       @default("NEW") // NEW, CONTACTED, MEETING_BOOKED, CLOSED_WON, CLOSED_LOST
+  source      String? // "outbound", "inbound", "referral"
+  score       Int          @default(0)
+  lastContact DateTime?
+  meetingTime DateTime? // Populated by Calendly
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  CallLogs    CallLog[]
+  EmailDrafts EmailDraft[]
+}
+
+model EmailDraft {
+  id              String   @id @default(uuid())
+  leadId          String
+  Lead            Lead     @relation(fields: [leadId], references: [id])
+  status          String   @default("DRAFT") // DRAFT, QUEUED, SENT, REJECTED
+  subject         String
+  body            String
+  researchContext String? // JSON: { news: [...], company_info: ... }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Inquiry {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  company   String?
+  message   String
+  status    String   @default("NEW") // NEW, CONTACTED, ARCHIVED
+  createdAt DateTime @default(now())
+}
