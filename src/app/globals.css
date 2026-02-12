@@ -5,6 +5,9 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-sidebar: var(--sidebar-background);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 @layer base {

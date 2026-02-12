@@ -19,6 +19,13 @@ export function StrategyCanvas() {
                 <p className="text-muted-foreground max-w-md mb-6">
                     Upload a PRD or product description in the "New Campaign" wizard to let our Expert Agent identify your best target markets.
                 </p>
+                <div className="flex gap-4">
+                    {/* Retry Button Placeholder - Wizard triggers the actual analysis, 
+                         but this provides a recovery path if state was lost */}
+                    <Button variant="outline" onClick={resetStrategy}>
+                        Reset & Retry
+                    </Button>
+                </div>
             </div>
         );
     }
