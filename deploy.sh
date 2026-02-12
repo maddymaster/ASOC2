@@ -1,55 +1,65 @@
 #!/bin/bash
 set -e
 
-PROJECT_ID="asoc-487213"
-REGION="us-central1"
-REPO_NAME="mission-control"
 SERVICE_NAME="mission-control"
+REGION="us-central1"
+PROJECT_ID="asoc-487213"
 
 echo "=================================================="
-echo "Mission Control Deployment"
+echo "Mission Control Deployment (Source Deploy)"
 echo "Project: $PROJECT_ID"
 echo "Region: $REGION"
 echo "=================================================="
 
-# 0. Create Artifact Registry Repo (Idempotent)
-echo "[1/3] Checking Artifact Registry Repository..."
-if ! gcloud artifacts repositories describe $REPO_NAME --location=$REGION --project=$PROJECT_ID > /dev/null 2>&1; then
-    echo "Creating repository '$REPO_NAME'..."
-    gcloud artifacts repositories create $REPO_NAME \
-        --repository-format=docker \
-        --location=$REGION \
-        --project=$PROJECT_ID \
-        --description="Mission Control Repository"
+# 1. Convert .env.local to env.yaml for gcloud
+echo "Preparing environment variables..."
+if [ -f .env.local ]; then
+    # Create a temporary yaml file
+    # 1. Remove comments (#)
+    # 2. Remove empty lines
+    # 3. Convert KEY=VALUE to KEY: "VALUE"
+    # Note: This is a basic converter. Complex values with quotes might need care.
+    
+    echo "# Auto-generated from .env.local" > env.yaml
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip comments and empty lines
+        if [[ $line =~ ^#.* ]] || [[ -z $line ]]; then
+            continue
+        fi
+        
+        # Split by first '='
+        key=$(echo "$line" | cut -d '=' -f 1)
+        value=$(echo "$line" | cut -d '=' -f 2-)
+        
+        # Remove existing quotes if present to avoid double quoting "value" -> ""value""
+        value="${value%\"}"
+        value="${value#\"}"
+        
+        echo "$key: \"$value\"" >> env.yaml
+    done < .env.local
 else
-    echo "Repository '$REPO_NAME' already exists."
+    echo "Error: .env.local not found!"
+    exit 1
 fi
 
-# 1. Build and Push
-echo "[2/3] Submitting Build..."
-COMMIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "manual-$(date +%s)")
-gcloud builds submit --config cloudbuild.yaml \
-    --project=$PROJECT_ID \
-    --substitutions=COMMIT_SHA=$COMMIT_SHA \
-    .
+echo "[1/2] Deploying to Cloud Run..."
+echo "Using source-based deployment with env.yaml..."
 
-IMAGE_URI="us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/app:$COMMIT_SHA"
-
-# 2. Deploy to Cloud Run
-echo "[3/3] Deploying to Cloud Run..."
-# Note: We use .env.local for environment variables. 
-# WARNING: Ensure DATABASE_URL in .env.local points to a reachable DB (Cloud SQL or public), not localhost.
-
+# Note: This command builds the container using the Dockerfile in the current directory
+# and deploys it to Cloud Run.
 gcloud run deploy $SERVICE_NAME \
-    --image $IMAGE_URI \
+    --source . \
     --region $REGION \
     --project $PROJECT_ID \
     --platform managed \
     --allow-unauthenticated \
     --service-account "mission-control-deployer@$PROJECT_ID.iam.gserviceaccount.com" \
-    --env-vars-file .env.local
+    --env-vars-file env.yaml
+
+# Clean up
+rm env.yaml
 
 echo "=================================================="
-echo "Deployment Complete!"
-echo "Service URL should be in the output above."
+echo "Deployment Initiated!"
+echo "Watch the logs above for the Service URL."
 echo "=================================================="

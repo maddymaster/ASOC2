@@ -30,23 +30,24 @@ export async function POST(request: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
         const prompt = `
         Analyze the following Product Requirement Document (PRD) or product description.
-        Extract the following:
-        1. A brief summary of the product.
-        2. Identify 3 key target sectors/industries that would be ideal customers.
-        3. For each sector, provide:
-           - Rationale: Why isn't a good fit?
-           - Target Roles: Who executes the purchase decision?
-           - Value Proposition: What is the main selling point?
-           - Pain Points: What problems does it solve?
-           - Strategy Mix: Suggested outreach channel (Email, basic call, etc.)
+        
+        Task: Identify 3-4 key target sectors/industries that would be ideal customers for this product.
+        
+        For *each* sector, you must provide the following details:
+        1. **Sector Name**: Specific industry (e.g., "Enterprise Fintech", "Healthcare Providers").
+        2. **Rationale**: Explain *why* this sector is a good fit. Connect the product features to the sector's needs.
+        3. **Target Roles**: Job titles of the decision-makers (e.g., "CISO", "VP of Operations").
+        4. **Value Proposition**: The main selling point specifically for this sector.
+        5. **Pain Points**: Specific problems or challenges this sector faces that this product solves.
+        6. **Strategy Mix**: Suggested outreach channels (e.g., "Cold Email + LinkedIn", "Direct Sales").
 
-        Return the response as a JSON object with this structure:
+        Return the response as a valid JSON object with this exact structure:
         {
-          "summary": "...",
+          "summary": "Brief 1-2 sentence summary of the product.",
           "sectors": [
             {
               "sector": "...",
@@ -74,8 +75,12 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, analysis });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("PRD Analysis Error:", error);
-        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({
+            success: false,
+            error: error.message || 'Internal Server Error',
+            details: error.toString()
+        }, { status: 500 });
     }
 }
