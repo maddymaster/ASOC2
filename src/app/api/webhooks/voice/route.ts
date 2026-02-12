@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { pusherServer } from '@/lib/pusher';
 
+export const dynamic = 'force-dynamic';
+
 // Type Definition based on User Request
 interface VoiceWebhookPayload {
     call_id: string;

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { DeepResearchService } from '@/lib/deep-research';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
     try {
         const { leadId, companyName, contactName, role, rationale, valueProp } = await req.json();
