@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -103,3 +104,4 @@ model Inquiry {
   status    String   @default("NEW") // NEW, CONTACTED, ARCHIVED
   createdAt DateTime @default(now())
 }
+binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
