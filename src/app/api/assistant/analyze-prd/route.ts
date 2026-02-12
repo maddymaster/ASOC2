@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-const pdf = require('pdf-parse');
+// const pdf = require('pdf-parse'); // Moved inside handler
 
 export async function POST(request: Request) {
     try {
@@ -14,6 +14,7 @@ export async function POST(request: Request) {
         let text = '';
 
         if (file.type === 'application/pdf') {
+            const pdf = require('pdf-parse');
             const buffer = Buffer.from(await file.arrayBuffer());
             const data = await pdf(buffer);
             text = data.text;
