@@ -21,6 +21,7 @@ export function SettingsModal() {
         smtpPass: "",
         // Data
         apolloKey: "",
+        openAIKey: "",
         // Scheduling
         calendlyToken: "",
         calendlyLink: ""
@@ -174,6 +175,15 @@ export function SettingsModal() {
                                     {testing === 'apollo' ? "Testing..." : "Test"}
                                 </Button>
                             </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>OpenAI API Key</Label>
+                            <Input
+                                type="password"
+                                value={config.openAIKey}
+                                onChange={(e) => setConfig({ ...config, openAIKey: e.target.value })}
+                                placeholder="sk-..."
+                            />
                         </div>
                     </TabsContent>
 

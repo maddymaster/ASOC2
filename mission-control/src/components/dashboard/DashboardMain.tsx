@@ -23,23 +23,26 @@ export default function DashboardMain() {
         if (activeTab === 'lead-gen' && strategy) {
             const fetchAndDraft = async () => {
                 try {
+                    // Get keys from settings
+                    const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
+
                     // 1. Fetch Leads
                     const res = await fetch('/api/apollo', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ strategy })
+                        body: JSON.stringify({
+                            strategy,
+                            apiKey: savedConfig.apolloKey
+                        })
                     });
                     const data = await res.json();
 
                     if (data.success && data.leads) {
                         setLeads(data.leads);
 
-                        // 2. Automated Enrichment & Drafting (Top 10)
-                        // Only trigger if we haven't already for this session/strategy (checking if leads exist might be enough for now, or just firing)
-                        // For this demo, we'll fire every time we enter the tab with a strategy to ensure it works.
-                        const topLeads = data.leads.slice(0, 5); // Limit to 5-10 to avoid timeouts/rate limits in demo
+                        // 2. Automated Enrichment & Drafting (Top 5)
+                        const topLeads = data.leads.slice(0, 5);
 
-                        // Async drafting in background
                         topLeads.forEach(async (lead: any) => {
                             await fetch('/api/email/draft', {
                                 method: 'POST',
@@ -50,7 +53,8 @@ export default function DashboardMain() {
                                     contactName: lead.name,
                                     role: lead.title,
                                     rationale: strategy.rationale,
-                                    valueProp: "AI-Driven Sales Operations" // Could come from strategy too if added
+                                    valueProp: "AI-Driven Sales Operations"
+                                    // openAIKey could be passed here if needed by the backend
                                 })
                             });
                         });
@@ -66,7 +70,6 @@ export default function DashboardMain() {
     const handleCall = async (lead: any) => {
         console.log("Calling", lead.name);
 
-        // Optimistic UI Update
         const newCall = {
             id: 'temp-call',
             leadId: lead.id,
@@ -80,43 +83,38 @@ export default function DashboardMain() {
         setActiveCall(newCall);
 
         try {
-            const res = await fetch("/api/retell/outbound", {
+            const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
+
+            // Use the new Trigger Route
+            const res = await fetch("/api/calls/trigger", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ leadId: lead.id, script: "Intro Script" }),
+                body: JSON.stringify({
+                    leadId: lead.id,
+                    phone: "+15550101234", // In real app, use lead.phone or savedConfig.testPhone
+                    name: lead.name,
+                    rationale: strategy?.rationale,
+                    // Pass keys explicitly to override server env if needed (depends on route impl)
+                }),
             });
             const data = await res.json();
 
             if (data.success) {
-                // Update with real ID
                 setActiveCall({ ...newCall, id: data.callId });
-
-                // Simulate Call Progress (Mocking 5 seconds duration)
-                setTimeout(() => {
-                    setActiveCall(prev => prev ? { ...prev, status: 'connected' } : null);
-                }, 2000);
-
-                setTimeout(() => {
-                    const completedCall = {
-                        ...newCall,
-                        id: data.callId,
-                        status: 'completed' as const,
-                        duration: '01:30',
-                        transcript: "Agent: Hi, is this user? User: Yes. Agent: We have a new product... User: Sounds great, send me info.",
-                        sentiment: 'positive' as const
-                    };
-                    setActiveCall(null);
-                    setCallHistory(prev => [completedCall, ...prev]);
-                }, 8000);
+                toast.success("Call Initiated via Retell");
+            } else {
+                toast.error("Call Failed: " + data.error);
+                setActiveCall(null);
             }
         } catch (e) {
             console.error("Call failed", e);
+            toast.error("Call failed to connect");
             setActiveCall(null);
         }
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-muted/20 overflow-hidden">
+        <div className="w-full max-h-screen overflow-y-auto flex flex-col bg-muted/20">
             <div className="p-6 pb-2 shrink-0">
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Sales Dashboard</h2>
             </div>
@@ -143,7 +141,7 @@ export default function DashboardMain() {
                 </div>
 
                 {/* Strategy Tab */}
-                <TabsContent value="strategy" className="flex-1 h-full overflow-hidden">
+                <TabsContent value="strategy" className="flex-1 h-full p-1">
                     <StrategyCanvas />
                 </TabsContent>
 
