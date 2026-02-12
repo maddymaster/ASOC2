@@ -11,19 +11,33 @@ import { cn } from "@/lib/utils";
 export function StrategyCanvas() {
     const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis, setActiveTab, setSelectedSector } = useMissionControl();
 
+    // Empty State: Nordic Noir "No Strategy" view
     if (!expertAnalysis && analysisHistory.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-8 border-2 border-dashed rounded-lg bg-muted/10">
-                <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No Strategy Analyzed Yet</h3>
-                <p className="text-muted-foreground max-w-md mb-6">
-                    Upload a PRD or product description in the "New Campaign" wizard to let our Expert Agent identify your best target markets.
+            <div className="flex flex-col items-center justify-center h-[70vh] text-center p-12 border border-dashed border-slate-700/50 rounded-xl bg-slate-900/30 backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                <div className="relative z-10 p-4 rounded-full bg-slate-800/50 mb-6 border border-slate-700/50 shadow-xl shadow-blue-500/10">
+                    <Lightbulb className="h-10 w-10 text-blue-400 animate-pulse" />
+                </div>
+
+                <h3 className="relative z-10 text-2xl font-semibold mb-3 tracking-tight text-slate-100">
+                    Awaiting Strategic Analysis
+                </h3>
+
+                <p className="relative z-10 text-slate-400 max-w-lg mb-8 text-lg font-light leading-relaxed">
+                    Upload your product documentation in the generic "New Campaign" wizard to activate the Expert Agent.
+                    We'll identify high-value sectors and tailor your outreach strategy.
                 </p>
-                <div className="flex gap-4">
-                    {/* Retry Button Placeholder - Wizard triggers the actual analysis, 
-                         but this provides a recovery path if state was lost */}
-                    <Button variant="outline" onClick={resetStrategy}>
-                        Reset & Retry
+
+                <div className="relative z-10 flex gap-4">
+                    {/* Retry / Recovery Action */}
+                    <Button
+                        variant="outline"
+                        onClick={resetStrategy}
+                        className="border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
+                    >
+                        Reset System State
                     </Button>
                 </div>
             </div>
@@ -47,48 +61,58 @@ export function StrategyCanvas() {
     };
 
     return (
-        <div className="grid grid-cols-12 gap-6 h-full">
-            {/* History Sidebar */}
-            <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r border-border/50 pr-4 flex flex-col gap-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-2">
-                    <Clock className="h-4 w-4" /> History
+        <div className="grid grid-cols-12 gap-8 h-full">
+            {/* History Sidebar - Glassmorphism */}
+            <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r border-slate-800/60 pr-6 flex flex-col gap-6">
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
+                    <Clock className="h-4 w-4 text-blue-500" /> History
                 </div>
-                <ScrollArea className="flex-1 -mr-2 pr-2">
-                    <div className="space-y-2">
+                <ScrollArea className="flex-1 -mr-4 pr-4">
+                    <div className="space-y-3">
                         {analysisHistory.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => setExpertAnalysis(item)}
                                 className={cn(
-                                    "w-full text-left p-3 rounded-lg border text-sm transition-colors hover:bg-accent",
-                                    activeAnalysis.id === item.id ? "bg-accent border-primary/50" : "border-transparent bg-muted/20"
+                                    "w-full text-left p-4 rounded-lg border transition-all duration-200 group relative overflow-hidden",
+                                    activeAnalysis.id === item.id
+                                        ? "bg-blue-500/10 border-blue-500/30 text-blue-100"
+                                        : "border-transparent hover:bg-slate-800/50 hover:border-slate-700 text-slate-400 hover:text-slate-200"
                                 )}
                             >
-                                <div className="font-medium truncate">{item.fileName || "Unknown PRD"}</div>
-                                <div className="text-xs text-muted-foreground mt-1">
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 transition-opacity duration-200"
+                                    style={{ opacity: activeAnalysis.id === item.id ? 1 : 0 }} />
+
+                                <div className="font-medium truncate text-sm">{item.fileName || "Unknown PRD"}</div>
+                                <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
                                     {item.timestamp ? new Date(item.timestamp).toLocaleDateString() : "Just now"}
                                 </div>
                             </button>
                         ))}
                     </div>
                 </ScrollArea>
-                <div className="mt-auto">
-                    <Button variant="outline" size="sm" onClick={resetStrategy} className="w-full gap-2">
+                <div className="mt-auto pt-4 border-t border-slate-800/60">
+                    <Button variant="outline" size="sm" onClick={resetStrategy}
+                        className="w-full gap-2 border-dashed border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
                         <Plus className="h-4 w-4" /> New Analysis
                     </Button>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="col-span-12 md:col-span-9 lg:col-span-10 flex flex-col space-y-6 h-full">
-                <Card className="bg-primary/5 border-primary/20">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Target className="h-5 w-5 text-primary" />
-                                {activeAnalysis.id ? `Analysis: ${activeAnalysis.fileName}` : "PRD Analysis Summary"}
+            <div className="col-span-12 md:col-span-9 lg:col-span-10 flex flex-col space-y-8 h-full">
+                {/* Header Card */}
+                <Card className="bg-slate-900/40 backdrop-blur-md border border-slate-700/50 shadow-2xl">
+                    <CardHeader className="flex flex-row items-center justify-between pb-6">
+                        <div className="space-y-1">
+                            <CardTitle className="text-xl flex items-center gap-3 text-white font-semibold tracking-tight">
+                                <span className="flex items-center justify-center h-8 w-8 rounded bg-blue-500/20 ring-1 ring-blue-500/50">
+                                    <Target className="h-4 w-4 text-blue-400" />
+                                </span>
+                                {activeAnalysis.id ? `Analysis: ${activeAnalysis.fileName}` : "Strategic Analysis"}
                             </CardTitle>
-                            <CardDescription className="text-base text-foreground/90 mt-2">
+                            <CardDescription className="text-base text-slate-300/80 leading-relaxed max-w-4xl">
                                 {summary}
                             </CardDescription>
                         </div>
@@ -96,60 +120,76 @@ export function StrategyCanvas() {
                 </Card>
 
                 <ScrollArea className="flex-1 -mx-6 px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
                         {sectors.map((sector, idx) => (
-                            <Card key={idx} className="flex flex-col h-full hover:shadow-lg transition-shadow border-t-4 border-t-primary">
-                                <CardHeader>
-                                    <div className="flex justify-between items-start">
-                                        <Badge variant="secondary" className="mb-2 text-primary bg-primary/10">
-                                            Recommendation #{idx + 1}
+                            <Card key={idx} className="flex flex-col h-full group hover:scale-[1.01] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/20">
+                                <CardHeader className="pb-4">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <Badge variant="outline" className="text-blue-400 border-blue-500/20 bg-blue-500/5 uppercase tracking-widest text-[10px] font-bold px-2 py-0.5">
+                                            Sector {idx + 1}
                                         </Badge>
                                     </div>
-                                    <CardTitle className="text-xl">{sector.sector}</CardTitle>
+                                    <CardTitle className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
+                                        {sector.sector}
+                                    </CardTitle>
                                 </CardHeader>
+
                                 <CardContent className="space-y-6 flex-1 flex flex-col">
+                                    {/* Glass Separator */}
+                                    <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+
                                     <section>
-                                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                            <Lightbulb className="h-4 w-4 text-amber-500" /> Rationale
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <Lightbulb className="h-3 w-3 text-amber-400" /> Strategic Rationale
                                         </h4>
-                                        <p className="text-sm text-muted-foreground">{sector.rationale}</p>
+                                        <p className="text-sm text-slate-300 leading-relaxed">
+                                            {sector.rationale}
+                                        </p>
                                     </section>
 
                                     <section>
-                                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                            <Users className="h-4 w-4 text-blue-500" /> Target Roles
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <Users className="h-3 w-3 text-indigo-400" /> Decision Makers
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
                                             {sector.targetRoles.map((role, rIdx) => (
-                                                <Badge key={rIdx} variant="outline">{role}</Badge>
+                                                <Badge key={rIdx} variant="secondary" className="bg-slate-800 text-slate-200 border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                                                    {role}
+                                                </Badge>
                                             ))}
                                         </div>
                                     </section>
 
                                     <section>
-                                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                            <Target className="h-4 w-4 text-green-500" /> Strategy Mix
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <Target className="h-3 w-3 text-emerald-400" /> Outreach Mix
                                         </h4>
-                                        <p className="text-sm font-medium text-green-400">
+                                        <p className="text-sm font-medium text-emerald-400/90 bg-emerald-950/30 px-3 py-1.5 rounded-md border border-emerald-900/50 inline-block">
                                             {sector.strategyMix || "Multi-channel approach recommended."}
                                         </p>
                                     </section>
 
-                                    <section>
-                                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                            <AlertTriangle className="h-4 w-4 text-red-500" /> Pain Points
+                                    <section className="flex-1">
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <AlertTriangle className="h-3 w-3 text-rose-400" /> Key Pain Points
                                         </h4>
-                                        <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                        <ul className="text-sm text-slate-400 space-y-1.5">
                                             {sector.painPoints.slice(0, 3).map((pt, pIdx) => (
-                                                <li key={pIdx}>{pt}</li>
+                                                <li key={pIdx} className="flex items-start gap-2">
+                                                    <span className="mt-1.5 h-1 w-1 rounded-full bg-rose-500 flex-shrink-0" />
+                                                    <span className="leading-snug">{pt}</span>
+                                                </li>
                                             ))}
                                         </ul>
                                     </section>
 
                                     <div className="mt-auto pt-6">
-                                        <Button className="w-full group" onClick={() => handleApplyStrategy(sector)}>
-                                            Target this Sector
-                                            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        <Button
+                                            className="w-full group bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 border border-blue-500/20"
+                                            onClick={() => handleApplyStrategy(sector)}
+                                        >
+                                            <span className="mr-2">Target this Sector</span>
+                                            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                         </Button>
                                     </div>
                                 </CardContent>
