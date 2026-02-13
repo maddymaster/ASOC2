@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
+    let fileName = 'unknown'; // Declare at function scope for error handling
+
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
@@ -10,6 +12,8 @@ export async function POST(req: NextRequest) {
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
+
+        fileName = file.name; // Capture filename for error handling
 
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY;
         if (!apiKey) {
@@ -194,14 +198,53 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error('[Analyze] Fatal error:', error);
+        console.error('[Analyze] Error stack:', error.stack);
+        console.error('[Analyze] Error name:', error.name);
+        console.error('[Analyze] Error message:', error.message);
+
+        // Determine specific error type and provide actionable feedback
+        let errorType = 'unknown';
+        let userMessage = 'Failed to analyze document';
+        let suggestion = 'Please try again or contact support if the issue persists.';
+
+        if (error.message?.includes('API key')) {
+            errorType = 'api_key_missing';
+            userMessage = 'API Configuration Error';
+            suggestion = 'The Gemini API key is not configured. Please contact your administrator.';
+        } else if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+            errorType = 'rate_limit';
+            userMessage = 'API Rate Limit Exceeded';
+            suggestion = 'Too many requests. Please wait a few minutes and try again.';
+        } else if (error.message?.includes('JSON')) {
+            errorType = 'json_parse_error';
+            userMessage = 'AI Response Format Error';
+            suggestion = 'The AI returned an unexpected format. Try uploading a different document or simplifying your file.';
+        } else if (error.message?.includes('PDF') || error.message?.includes('parse')) {
+            errorType = 'file_parse_error';
+            userMessage = 'File Parsing Error';
+            suggestion = 'Unable to extract content from this file. Try converting your PDF to an image (PNG/JPG) or plain text file.';
+        } else if (error.message?.includes('timeout') || error.message?.includes('ETIMEDOUT')) {
+            errorType = 'timeout';
+            userMessage = 'Analysis Timeout';
+            suggestion = 'The file took too long to analyze. Try a smaller file or simpler document.';
+        } else if (error.message?.includes('network') || error.message?.includes('ECONNREFUSED')) {
+            errorType = 'network_error';
+            userMessage = 'Network Connection Error';
+            suggestion = 'Unable to reach the AI service. Please check your internet connection and try again.';
+        }
+
         return NextResponse.json({
-            error: 'Failed to analyze document',
+            error: userMessage,
+            errorType,
             details: error.message,
-            suggestion: error.message.includes('PDF')
-                ? 'Try converting your PDF to an image (PNG/JPG) or plain text file.'
-                : error.message.includes('JSON')
-                    ? 'The AI response was not in the expected format. Please try again.'
-                    : 'Ensure the file is a valid document format (PDF, TXT, MD, PNG, JPG).'
+            suggestion,
+            fileName: fileName,
+            timestamp: new Date().toISOString(),
+            // For debugging (remove in production if sensitive)
+            debugInfo: process.env.NODE_ENV === 'development' ? {
+                stack: error.stack,
+                apiKeyPresent: !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_API_KEY,
+            } : undefined
         }, { status: 500 });
     }
 }

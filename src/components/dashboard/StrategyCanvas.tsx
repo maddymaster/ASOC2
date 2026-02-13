@@ -62,40 +62,67 @@ export function StrategyCanvas() {
     }, [activeAnalysis, strategyMode, setStrategyMode]);
 
 
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
-        let file: File | null = null;
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
+        let selectedFile: File | null = null;
 
-        if ('files' in e.target && e.target.files && e.target.files.length > 0) {
-            file = e.target.files[0];
-        } else if ('dataTransfer' in e && e.dataTransfer.files.length > 0) {
-            file = e.dataTransfer.files[0];
+        if ('dataTransfer' in e) {
+            selectedFile = e.dataTransfer.files[0];
+        } else if (e.target.files) {
+            selectedFile = e.target.files[0];
         }
 
-        if (!file) return;
+        if (!selectedFile) return;
 
-        // Start Uploading
-        setStrategyMode('UPLOADING');
+        // File validation
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const allowedTypes = ['application/pdf', 'text/plain', 'text/markdown', 'image/png', 'image/jpeg'];
+        const allowedExtensions = ['.pdf', '.txt', '.md', '.png', '.jpg', '.jpeg'];
 
-        // Simulating Upload & Analysis Start
-        setTimeout(() => {
-            startAnalysis(file!);
-        }, 1500);
+        // Check file size
+        if (selectedFile.size > maxSize) {
+            toast.error('File Too Large', {
+                description: `File size is ${(selectedFile.size / 1024 / 1024).toFixed(2)}MB. Maximum allowed is 10MB. Please upload a smaller file.`,
+                duration: 8000
+            });
+            return;
+        }
+
+        // Check file type
+        const fileExtension = selectedFile.name.toLowerCase().match(/\.[^.]+$/)?.[0] || '';
+        const isValidType = allowedTypes.includes(selectedFile.type) || allowedExtensions.includes(fileExtension);
+
+        if (!isValidType) {
+            toast.error('Unsupported File Type', {
+                description: `File type "${selectedFile.type || fileExtension}" is not supported. Please upload: PDF, TXT, MD, PNG, or JPG.`,
+                duration: 8000
+            });
+            return;
+        }
+
+        // Show file info toast
+        toast.info('File Selected', {
+            description: `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)}KB) - Starting analysis...`,
+            duration: 3000
+        });
+
+        startAnalysis(selectedFile);
     };
 
     const startAnalysis = async (file: File) => {
         setStrategyMode('ANALYZING');
 
-        // Set Safety Timeout (45s)
+        // Set Safety Timeout (90s for larger files)
         if (analysisTimeoutRef.current) clearTimeout(analysisTimeoutRef.current);
 
         analysisTimeoutRef.current = setTimeout(() => {
             if (strategyMode === 'ANALYZING') {
                 setStrategyMode('ERROR');
                 toast.error("Analysis Timed Out", {
-                    description: " The AI inference took too long. Please try again with a smaller file or plain text."
+                    description: "The AI inference took too long (>90s). Please try again with a smaller file or simpler document.",
+                    duration: 10000
                 });
             }
-        }, 45000); // 45 Seconds
+        }, 90000); // 90 Seconds
 
         try {
             const formData = new FormData();
@@ -106,8 +133,14 @@ export function StrategyCanvas() {
                 body: formData
             });
 
+            // Handle non-OK responses
             if (!res.ok) {
-                throw new Error(`Analysis failed: ${res.statusText}`);
+                const errorData = await res.json();
+                throw {
+                    status: res.status,
+                    statusText: res.statusText,
+                    ...errorData
+                };
             }
 
             const result = await res.json();
@@ -147,27 +180,38 @@ export function StrategyCanvas() {
             // Extract error details from API response
             let errorMessage = 'Analysis Failed';
             let errorDescription = 'Unknown error occurred';
+            let errorSuggestion = '';
 
-            if (error.message) {
+            // Try to parse the response as JSON (for API errors)
+            if (error instanceof Response) {
+                try {
+                    const errorData = await error.json();
+                    errorMessage = errorData.error || errorMessage;
+                    errorDescription = errorData.details || errorDescription;
+                    errorSuggestion = errorData.suggestion || '';
+                } catch (parseError) {
+                    errorDescription = `HTTP ${error.status}: ${error.statusText}`;
+                }
+            } else if (error.message) {
                 errorDescription = error.message;
             }
 
-            // If it's a fetch error, try to extract JSON error details
-            try {
-                const errorData = await error.json?.();
-                if (errorData) {
-                    errorDescription = errorData.details || errorData.error || errorDescription;
-                    if (errorData.suggestion) {
-                        errorDescription += `\n\n💡 ${errorData.suggestion}`;
-                    }
-                }
-            } catch {
-                // JSON parsing failed, use error message as-is
+            // Build comprehensive error message
+            let fullDescription = errorDescription;
+            if (errorSuggestion) {
+                fullDescription += `\n\n💡 ${errorSuggestion}`;
             }
 
             toast.error(errorMessage, {
+                description: fullDescription,
+                duration: 10000 // 10 seconds for errors
+            });
+
+            console.error('[StrategyCanvas] Analysis error:', {
+                message: errorMessage,
                 description: errorDescription,
-                duration: 8000
+                suggestion: errorSuggestion,
+                originalError: error
             });
         }
     };
@@ -313,12 +357,10 @@ export function StrategyCanvas() {
         );
     }
 
-    // 2. UPLOADING & ANALYZING STATE
-    if (strategyMode === 'UPLOADING' || strategyMode === 'ANALYZING') {
-        const step = strategyMode === 'UPLOADING' ? 'Uploading Document...' : 'Analyzing Strategy...';
-        const subtext = strategyMode === 'UPLOADING'
-            ? 'Encrypting and transferring your context...'
-            : 'AI Agent is identifying market sectors and personas...';
+    // 2. UPLOADING STATE
+    if (strategyMode === 'UPLOADING') {
+        const step = 'Uploading Document...';
+        const subtext = 'Encrypting and transferring your context...';
 
         return (
             <div className="flex items-center justify-center h-full">
@@ -337,11 +379,54 @@ export function StrategyCanvas() {
                                 {subtext}
                             </p>
                         </div>
-                        {strategyMode === 'ANALYZING' && (
-                            <Badge variant="outline" className="mt-4 border-amber-500/30 text-amber-400 bg-amber-500/5">
-                                <Clock className="h-3 w-3 mr-1.5" /> Est. Time: &lt; 45s
-                            </Badge>
-                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+    // 2. ANALYZING STATE (Loading with Progress)
+    if (strategyMode === 'ANALYZING') {
+        return (
+            <div className="flex items-center justify-center h-full p-6">
+                <Card className="w-full max-w-2xl mx-auto bg-gradient-to-br from-blue-950/40 to-purple-950/40 backdrop-blur-md border border-blue-700/50 shadow-2xl">
+                    <CardContent className="flex flex-col items-center justify-center p-16 text-center space-y-8">
+                        {/* Animated Icon */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+                            <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 p-6 rounded-full">
+                                <Brain className="h-12 w-12 text-white animate-pulse" />
+                            </div>
+                        </div>
+
+                        {/* Progress Heading */}
+                        <div className="space-y-3">
+                            <h3 className="text-2xl font-bold text-white">Analyzing Your Document</h3>
+                            <p className="text-slate-300">Gemini 1.5 Pro is processing your file with multimodal AI...</p>
+                        </div>
+
+                        {/* Progress Stages */}
+                        <div className="w-full max-w-md space-y-4">
+                            <div className="flex items-center gap-3 p-3 bg-blue-900/30 rounded-lg border border-blue-700/30">
+                                <Check className="h-5 w-5 text-green-400" />
+                                <span className="text-sm text-slate-200">File uploaded successfully</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-blue-900/30 rounded-lg border border-blue-700/30 animate-pulse">
+                                <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+                                <span className="text-sm text-slate-200">Extracting content and analyzing strategy...</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-slate-900/30 rounded-lg border border-slate-700/30 opacity-50">
+                                <Clock className="h-5 w-5 text-slate-500" />
+                                <span className="text-sm text-slate-400">Finalizing recommendations</span>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full max-w-md">
+                            <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" style={{ width: '65%' }}></div>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2">This may take up to 90 seconds for complex files</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
