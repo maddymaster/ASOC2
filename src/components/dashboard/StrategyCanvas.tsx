@@ -140,11 +140,34 @@ export function StrategyCanvas() {
             setStrategyMode('COMPLETE');
             toast.success("Strategy Analysis Complete");
 
-        } catch (error) {
+        } catch (error: any) {
             if (analysisTimeoutRef.current) clearTimeout(analysisTimeoutRef.current);
             setStrategyMode('ERROR');
-            toast.error("Analysis Failed", {
-                description: error instanceof Error ? error.message : "Unknown error occurred"
+
+            // Extract error details from API response
+            let errorMessage = 'Analysis Failed';
+            let errorDescription = 'Unknown error occurred';
+
+            if (error.message) {
+                errorDescription = error.message;
+            }
+
+            // If it's a fetch error, try to extract JSON error details
+            try {
+                const errorData = await error.json?.();
+                if (errorData) {
+                    errorDescription = errorData.details || errorData.error || errorDescription;
+                    if (errorData.suggestion) {
+                        errorDescription += `\n\n💡 ${errorData.suggestion}`;
+                    }
+                }
+            } catch {
+                // JSON parsing failed, use error message as-is
+            }
+
+            toast.error(errorMessage, {
+                description: errorDescription,
+                duration: 8000
             });
         }
     };
@@ -344,7 +367,16 @@ export function StrategyCanvas() {
                             <Button variant="outline" onClick={resetCombinedState} className="border-slate-700 hover:bg-slate-800">
                                 Cancel
                             </Button>
-                            <Button onClick={() => setStrategyMode('IDLE')} className="bg-red-600 hover:bg-red-700">
+                            <Button onClick={() => {
+                                // Clear file input buffer
+                                if (fileInputRef.current) {
+                                    fileInputRef.current.value = '';
+                                }
+                                // Reset to IDLE for fresh upload
+                                resetCombinedState();
+                                setStrategyMode('IDLE');
+                                toast.info('Ready for new upload');
+                            }} className="bg-red-600 hover:bg-red-700">
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Retry Upload
                             </Button>
