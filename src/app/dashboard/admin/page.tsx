@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Shield, UserPlus, Trash2, Key, Search } from "lucide-react";
 import Link from "next/link";
+import { useMissionControl } from "@/context/MissionControlContext";
 
 // Mock Data for Admin Prototype
 const MOCK_USERS = [
@@ -25,6 +26,7 @@ const MOCK_AUDIT_LOGS = [
 export default function AdminPage() {
     const [users, setUsers] = useState(MOCK_USERS);
     const [searchTerm, setSearchTerm] = useState("");
+    const { setActiveTab } = useMissionControl();
 
     const handleDelete = (id: string) => {
         if (confirm("Are you sure? This action cannot be undone.")) {
@@ -42,7 +44,7 @@ export default function AdminPage() {
                         <h1 className="text-3xl font-bold tracking-tight">Admin Console</h1>
                         <p className="text-muted-foreground">Manage users, roles, and system audit logs.</p>
                     </div>
-                    <Link href="/dashboard">
+                    <Link href="/dashboard" onClick={() => setActiveTab('strategy')}>
                         <Button variant="outline">Back to Dashboard</Button>
                     </Link>
                 </div>
