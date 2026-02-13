@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" }); // Using v1-compatible model name
 
         const prompt = `
         Analyze the following Product Requirement Document (PRD) or product description.
