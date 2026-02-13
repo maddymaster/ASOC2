@@ -4,7 +4,7 @@ import { useMissionControl } from "@/context/MissionControlContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, Target, Lightbulb, AlertTriangle, ArrowRight, Clock, Plus, ChevronDown, ChevronUp, Cpu, Sparkles, Activity, FileText, Upload, RefreshCw, AlertCircle } from "lucide-react";
+import { Check, Target, Lightbulb, AlertTriangle, ArrowRight, Clock, Plus, ChevronDown, ChevronUp, Cpu, Sparkles, Activity, FileText, Upload, RefreshCw, AlertCircle, Brain, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
