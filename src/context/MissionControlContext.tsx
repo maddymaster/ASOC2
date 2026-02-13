@@ -26,6 +26,8 @@ export interface Strategy {
     rationale?: string;
 }
 
+export type StrategyMode = 'IDLE' | 'UPLOADING' | 'ANALYZING' | 'ERROR' | 'COMPLETE';
+
 export interface EmailDraft {
     id: string;
     leadId: string;
@@ -114,6 +116,10 @@ interface MissionControlContextType {
     addActivityEvent: (event: Omit<ActivityEvent, 'id' | 'timestamp'>) => void;
     leadScores: Map<string, LeadScore>;
     setLeadScore: (leadId: string, score: LeadScore) => void;
+    // State Machine & Reset
+    strategyMode: StrategyMode;
+    setStrategyMode: (mode: StrategyMode) => void;
+    resetCombinedState: () => void;
 }
 
 
@@ -159,6 +165,9 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
 
     const [selectedSector, setSelectedSector] = useState<string | null>(null);
 
+    // State Machine
+    const [strategyMode, setStrategyMode] = useState<StrategyMode>('IDLE');
+
     const addMessage = (msg: Message) => {
         setMessages((prev) => [...prev, msg]);
     };
@@ -168,6 +177,10 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     };
 
     const resetStrategy = () => {
+        resetCombinedState();
+    };
+
+    const resetCombinedState = () => {
         setExpertAnalysis(null);
         setStrategy(null);
         setSelectedSector(null);
@@ -180,6 +193,9 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             }
         ]);
         setActiveTab("strategy");
+        setStrategyMode('IDLE');
+        setAgentStatus('idle');
+        setActivityLog([]);
     };
 
     const addToHistory = (analysis: PRDAnalysisResult) => {
@@ -222,7 +238,8 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             // AI Agent Orchestration
             agentStatus, setAgentStatus,
             activityLog, addActivityEvent,
-            leadScores, setLeadScore
+            leadScores, setLeadScore,
+            strategyMode, setStrategyMode, resetCombinedState
         }}>
             {children}
         </MissionControlContext.Provider>
