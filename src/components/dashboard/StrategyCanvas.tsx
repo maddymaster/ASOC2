@@ -4,60 +4,136 @@ import { useMissionControl } from "@/context/MissionControlContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, Target, Lightbulb, AlertTriangle, ArrowRight, Clock, Plus } from "lucide-react";
+import { Check, Target, Lightbulb, AlertTriangle, ArrowRight, Clock, Plus, ChevronDown, ChevronUp, Cpu, Sparkles, Activity } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export function StrategyCanvas() {
-    const { expertAnalysis, setStrategy, resetStrategy, analysisHistory, setExpertAnalysis, setActiveTab, setSelectedSector } = useMissionControl();
+    const {
+        expertAnalysis,
+        resetStrategy,
+        analysisHistory,
+        setExpertAnalysis,
+        setStrategy,
+        setActiveTab,
+        setSelectedSector,
+        agentStatus,
+        setAgentStatus,
+        addActivityEvent
+    } = useMissionControl();
 
-    // Empty State: Nordic Noir "No Strategy" view
-    if (!expertAnalysis && analysisHistory.length === 0) {
+    const [expandedSectors, setExpandedSectors] = useState<Set<number>>(new Set());
+    const [sectorAgentStatus, setSectorAgentStatus] = useState<Map<number, 'idle' | 'analyzing' | 'ready'>>(new Map());
+
+    const activeAnalysis = expertAnalysis || analysisHistory[0];
+
+    if (!activeAnalysis) {
         return (
-            <div className="flex flex-col items-center justify-center h-[70vh] text-center p-12 border border-dashed border-slate-700/50 rounded-xl bg-slate-900/30 backdrop-blur-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                <div className="relative z-10 p-4 rounded-full bg-slate-800/50 mb-6 border border-slate-700/50 shadow-xl shadow-blue-500/10">
-                    <Lightbulb className="h-10 w-10 text-blue-400 animate-pulse" />
-                </div>
-
-                <h3 className="relative z-10 text-2xl font-semibold mb-3 tracking-tight text-slate-100">
-                    Awaiting Strategic Analysis
-                </h3>
-
-                <p className="relative z-10 text-slate-400 max-w-lg mb-8 text-lg font-light leading-relaxed">
-                    Upload your product documentation in the generic "New Campaign" wizard to activate the Expert Agent.
-                    We'll identify high-value sectors and tailor your outreach strategy.
-                </p>
-
-                <div className="relative z-10 flex gap-4">
-                    {/* Retry / Recovery Action */}
-                    <Button
-                        variant="outline"
-                        onClick={resetStrategy}
-                        className="border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
-                    >
-                        Reset System State
-                    </Button>
-                </div>
+            <div className="flex items-center justify-center h-full">
+                <Card className="w-full max-w-2xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-700/50 shadow-2xl">
+                    <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-6">
+                        <div className="flex items-center justify-center h-20 w-20 rounded-full bg-blue-500/10 ring-4 ring-blue-500/20">
+                            <Target className="h-10 w-10 text-blue-400 animate-pulse" />
+                        </div>
+                        <div className="space-y-3">
+                            <h3 className="text-xl font-bold text-white tracking-tight">Awaiting Strategic Analysis</h3>
+                            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+                                No Strategy Analyzed Yet. Upload a PRD or product description to identify target sectors and deploy AI agents.
+                            </p>
+                        </div>
+                        <Button onClick={resetStrategy} variant="outline" size="lg" className="gap-2 border-blue-500/30 hover:bg-blue-500/10 hover:border-blue-400 text-blue-300">
+                            <Plus className="h-4 w-4" /> Start New Analysis
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
-    const activeAnalysis = expertAnalysis || analysisHistory[0];
     const { summary, sectors } = activeAnalysis;
 
-    const handleApplyStrategy = (sector: any) => {
-        setSelectedSector(sector.sector);
-        setStrategy({
-            industry: sector.sector,
-            geo: "Global",
-            companySize: "Mid-Market",
-            targetRole: sector.targetRoles[0],
-            domain: "",
-            rationale: sector.rationale
+    const toggleSectorExpansion = (idx: number) => {
+        setExpandedSectors(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(idx)) {
+                newSet.delete(idx);
+            } else {
+                newSet.add(idx);
+            }
+            return newSet;
         });
-        setActiveTab("lead-gen");
+    };
+
+    const handleDeployAgent = (sector: any, idx: number) => {
+        // Set sector agent status to analyzing
+        setSectorAgentStatus(prev => new Map(prev).set(idx, 'analyzing'));
+        setAgentStatus('active');
+
+        // Log activity
+        addActivityEvent({
+            type: 'info',
+            message: `Deploying agent for ${sector.sector} sector`,
+            details: `Target role: ${sector.targetRoles[0]}`
+        });
+
+        // Set strategy after a brief delay to show status change
+        setTimeout(() => {
+            setSectorAgentStatus(prev => new Map(prev).set(idx, 'ready'));
+
+            setSelectedSector(sector.sector);
+            setStrategy({
+                industry: sector.sector,
+                geo: "Global",
+                companySize: "Mid-Market",
+                targetRole: sector.targetRoles[0],
+                domain: "",
+                rationale: sector.rationale
+            });
+
+            addActivityEvent({
+                type: 'success',
+                message: `Agent deployed for ${sector.sector}`,
+                details: 'Navigating to Lead Generation...'
+            });
+
+            setActiveTab("lead-gen");
+        }, 1200);
+    };
+
+    const getAgentStatusForSector = (idx: number): 'idle' | 'analyzing' | 'ready' => {
+        return sectorAgentStatus.get(idx) || 'idle';
+    };
+
+    const getStatusBadge = (status: 'idle' | 'analyzing' | 'ready') => {
+        switch (status) {
+            case 'analyzing':
+                return (
+                    <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 gap-1.5 animate-pulse">
+                        <Activity className="h-3 w-3" />
+                        Analyzing Personas
+                    </Badge>
+                );
+            case 'ready':
+                return (
+                    <Badge className="bg-green-500/20 text-green-300 border-green-500/30 gap-1.5">
+                        <Check className="h-3 w-3" />
+                        Ready to Deploy
+                    </Badge>
+                );
+            default:
+                return (
+                    <Badge variant="outline" className="text-slate-400 border-slate-700 gap-1.5">
+                        <Cpu className="h-3 w-3" />
+                        Agent Idle
+                    </Badge>
+                );
+        }
     };
 
     return (
@@ -116,6 +192,12 @@ export function StrategyCanvas() {
                                 {summary}
                             </CardDescription>
                         </div>
+                        <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/20 gap-2">
+                                <Sparkles className="h-3 w-3" />
+                                {sectors.length} Agents
+                            </Badge>
+                        </div>
                     </CardHeader>
                 </Card>
 
@@ -124,10 +206,11 @@ export function StrategyCanvas() {
                         {sectors.map((sector, idx) => (
                             <Card key={idx} className="flex flex-col h-full group hover:scale-[1.01] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/20">
                                 <CardHeader className="pb-4">
-                                    <div className="flex justify-between items-start mb-3">
+                                    <div className="flex justify-between items-start mb-3 gap-2">
                                         <Badge variant="outline" className="text-blue-400 border-blue-500/20 bg-blue-500/5 uppercase tracking-widest text-[10px] font-bold px-2 py-0.5">
                                             Sector {idx + 1}
                                         </Badge>
+                                        {getStatusBadge(getAgentStatusForSector(idx))}
                                     </div>
                                     <CardTitle className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
                                         {sector.sector}
@@ -138,22 +221,47 @@ export function StrategyCanvas() {
                                     {/* Glass Separator */}
                                     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
-                                    <section>
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <Lightbulb className="h-3 w-3 text-amber-400" /> Strategic Rationale
-                                        </h4>
-                                        <p className="text-sm text-slate-300 leading-relaxed">
-                                            {sector.rationale}
-                                        </p>
-                                    </section>
+                                    {/* AI Reasoning Dropdown */}
+                                    <Collapsible
+                                        open={expandedSectors.has(idx)}
+                                        onOpenChange={() => toggleSectorExpansion(idx)}
+                                    >
+                                        <CollapsibleTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full justify-between h-9 px-3 text-slate-300 hover:text-blue-300 hover:bg-blue-500/5"
+                                            >
+                                                <span className="flex items-center gap-2 text-xs font-semibold">
+                                                    <Lightbulb className="h-3 w-3 text-amber-400" />
+                                                    AI Reasoning
+                                                </span>
+                                                {expandedSectors.has(idx) ?
+                                                    <ChevronUp className="h-4 w-4" /> :
+                                                    <ChevronDown className="h-4 w-4" />
+                                                }
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent className="mt-3">
+                                            <div className="bg-slate-950/50 rounded-lg p-4 border border-slate-800/50">
+                                                <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                                                    {sector.rationale}
+                                                </p>
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider">
+                                                    <div className="h-1 w-1 rounded-full bg-green-500"></div>
+                                                    Confidence: High
+                                                </div>
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
 
                                     <section>
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                            <Users className="h-3 w-3 text-indigo-400" /> Decision Makers
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <Target className="h-3 w-3 text-blue-400" /> Target Roles
                                         </h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {sector.targetRoles.map((role, rIdx) => (
-                                                <Badge key={rIdx} variant="secondary" className="bg-slate-800 text-slate-200 border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {sector.targetRoles.map((role, i) => (
+                                                <Badge key={i} variant="secondary" className="text-xs bg-slate-800/60 text-slate-200 border-slate-700">
                                                     {role}
                                                 </Badge>
                                             ))}
@@ -161,37 +269,50 @@ export function StrategyCanvas() {
                                     </section>
 
                                     <section>
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <Target className="h-3 w-3 text-emerald-400" /> Outreach Mix
-                                        </h4>
-                                        <p className="text-sm font-medium text-emerald-400/90 bg-emerald-950/30 px-3 py-1.5 rounded-md border border-emerald-900/50 inline-block">
-                                            {sector.strategyMix || "Multi-channel approach recommended."}
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Value Proposition</h4>
+                                        <p className="text-xs text-slate-300 leading-relaxed">
+                                            {sector.valueProposition}
                                         </p>
                                     </section>
 
                                     <section className="flex-1">
                                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <AlertTriangle className="h-3 w-3 text-rose-400" /> Key Pain Points
+                                            <AlertTriangle className="h-3 w-3 text-orange-400" /> Pain Points
                                         </h4>
-                                        <ul className="text-sm text-slate-400 space-y-1.5">
-                                            {sector.painPoints.slice(0, 3).map((pt, pIdx) => (
-                                                <li key={pIdx} className="flex items-start gap-2">
-                                                    <span className="mt-1.5 h-1 w-1 rounded-full bg-rose-500 flex-shrink-0" />
-                                                    <span className="leading-snug">{pt}</span>
+                                        <ul className="space-y-2 text-xs text-slate-300">
+                                            {sector.painPoints.map((pain, i) => (
+                                                <li key={i} className="flex items-start gap-2">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0"></span>
+                                                    <span className="leading-relaxed">{pain}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     </section>
 
-                                    <div className="mt-auto pt-6">
-                                        <Button
-                                            className="w-full group bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 border border-blue-500/20"
-                                            onClick={() => handleApplyStrategy(sector)}
-                                        >
-                                            <span className="mr-2">Target this Sector</span>
-                                            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </div>
+                                    <Button
+                                        onClick={() => handleDeployAgent(sector, idx)}
+                                        disabled={getAgentStatusForSector(idx) === 'analyzing'}
+                                        className="w-full mt-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {getAgentStatusForSector(idx) === 'analyzing' ? (
+                                            <>
+                                                <Activity className="h-4 w-4 mr-2 animate-spin" />
+                                                Deploying Agent...
+                                            </>
+                                        ) : getAgentStatusForSector(idx) === 'ready' ? (
+                                            <>
+                                                <Sparkles className="h-4 w-4 mr-2" />
+                                                Agent Ready - View Leads
+                                                <ArrowRight className="h-4 w-4 ml-2" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Cpu className="h-4 w-4 mr-2" />
+                                                Deploy Agent
+                                                <ArrowRight className="h-4 w-4 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
                                 </CardContent>
                             </Card>
                         ))}
@@ -200,26 +321,4 @@ export function StrategyCanvas() {
             </div>
         </div>
     );
-}
-
-function Users({ className }: { className?: string }) {
-    return (
-        <svg
-            className={className}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    )
 }

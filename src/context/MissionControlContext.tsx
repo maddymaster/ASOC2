@@ -47,6 +47,26 @@ export interface Call {
     timestamp: Date;
 }
 
+export interface ActivityEvent {
+    id: string;
+    timestamp: Date;
+    type: 'info' | 'success' | 'error' | 'warning';
+    message: string;
+    details?: string;
+}
+
+export interface LeadScore {
+    score: number;
+    reasoning: string;
+    confidence: 'high' | 'medium' | 'low';
+    keyFactors?: {
+        titleMatch: 'yes' | 'partial' | 'no';
+        sectorMatch: 'yes' | 'partial' | 'no';
+        sizeMatch: 'yes' | 'partial' | 'no';
+    };
+}
+
+
 interface MissionControlContextType {
     messages: Message[];
     addMessage: (msg: Message) => void;
@@ -86,7 +106,16 @@ interface MissionControlContextType {
     setActiveTab: (tab: string) => void;
     selectedSector: string | null;
     setSelectedSector: React.Dispatch<React.SetStateAction<string | null>>;
+
+    // AI Agent Orchestration
+    agentStatus: 'idle' | 'analyzing' | 'ready' | 'active' | 'error';
+    setAgentStatus: (status: 'idle' | 'analyzing' | 'ready' | 'active' | 'error') => void;
+    activityLog: ActivityEvent[];
+    addActivityEvent: (event: Omit<ActivityEvent, 'id' | 'timestamp'>) => void;
+    leadScores: Map<string, LeadScore>;
+    setLeadScore: (leadId: string, score: LeadScore) => void;
 }
+
 
 export interface PRDAnalysisResult {
     id?: string;
@@ -150,11 +179,29 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
                 content: "Hello! I'm your Mission Control assistant. Upload your PRD or tell me about your service to generate a targeted lead strategy."
             }
         ]);
-        setAnalysisHistory([]); // Optional: Keep history or clear? User said "Reset state", usually current active state. Keeping history sidebar might be nice but let's clear active session vars.
+        setActiveTab("strategy");
     };
 
     const addToHistory = (analysis: PRDAnalysisResult) => {
         setAnalysisHistory(prev => [analysis, ...prev]);
+    };
+
+    // AI Agent Orchestration State
+    const [agentStatus, setAgentStatus] = useState<'idle' | 'analyzing' | 'ready' | 'active' | 'error'>('idle');
+    const [activityLog, setActivityLog] = useState<ActivityEvent[]>([]);
+    const [leadScores, setLeadScores] = useState<Map<string, LeadScore>>(new Map());
+
+    const addActivityEvent = (event: Omit<ActivityEvent, 'id' | 'timestamp'>) => {
+        const newEvent: ActivityEvent = {
+            id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date(),
+            ...event
+        };
+        setActivityLog(prev => [newEvent, ...prev].slice(0, 50)); // Keep last 50 events
+    };
+
+    const setLeadScore = (leadId: string, score: LeadScore) => {
+        setLeadScores(prev => new Map(prev).set(leadId, score));
     };
 
     return (
@@ -171,7 +218,11 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             analysisHistory, addToHistory,
             campaignConfig, setCampaignConfig,
             isStrategyApproved, setStrategyApproved,
-            activeTab, setActiveTab
+            activeTab, setActiveTab,
+            // AI Agent Orchestration
+            agentStatus, setAgentStatus,
+            activityLog, addActivityEvent,
+            leadScores, setLeadScore
         }}>
             {children}
         </MissionControlContext.Provider>
