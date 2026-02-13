@@ -42,6 +42,10 @@ export function StrategyCanvas() {
     // Timeout Ref
     const analysisTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Analysis stage tracking
+    const [analysisStage, setAnalysisStage] = useState(0); // 0: Uploading, 1: Analyzing, 2: Building
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
     // Clear timeout on unmount or state change
     useEffect(() => {
         return () => {

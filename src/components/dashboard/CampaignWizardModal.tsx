@@ -166,205 +166,217 @@ export function CampaignWizardModal() {
                     <Plus className="h-4 w-4 mr-2" /> New Campaign
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-5xl h-[650px] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>New Campaign Wizard</DialogTitle>
-                </DialogHeader>
 
-                <div className="flex-1 overflow-hidden p-1">
-                    {step === "upload" && (
-                        <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-xl bg-muted/10 p-10 text-center">
-                            <div className="bg-muted p-4 rounded-full mb-4">
-                                <Upload className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">Upload Context</h3>
-                            <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-                                Drag and drop your PRD, Service Document, or Sales Deck (PDF, TXT).
-                            </p>
+            {/* z-[100] Modal with Backdrop Blur Isolation */}
+            <DialogContent className="fixed inset-0 z-[100] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out">
+                {/* Backdrop overlay - prevents interaction with background */}
+                <div
+                    className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"
+                    onClick={() => setOpen(false)}
+                    aria-hidden="true"
+                />
 
-                            <Input
-                                id="file-upload"
-                                type="file"
-                                className="hidden"
-                                onChange={handleFileChange}
-                            />
+                {/* Modal content - above backdrop */}
+                <div className="relative z-[100] w-full max-w-5xl h-[650px] bg-slate-900 rounded-lg shadow-2xl border border-slate-700 flex flex-col overflow-hidden">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700">
+                        <DialogTitle>New Campaign Wizard</DialogTitle>
+                    </DialogHeader>
 
-                            {!file ? (
-                                <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
-                                    Select File
-                                </Button>
-                            ) : (
-                                <div className="space-y-4 w-full">
-                                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
-                                        <FileText className="h-5 w-5 text-purple-500" />
-                                        <div className="flex-1 text-left truncate font-medium text-sm">
-                                            {file.name}
-                                        </div>
-                                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFile(null)}>
-                                            <span className="sr-only">Remove</span>x
-                                        </Button>
-                                    </div>
-                                    <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={startAnalysis}>
-                                        Analyze Document
-                                    </Button>
+                    <div className="flex-1 overflow-hidden p-1">
+                        {step === "upload" && (
+                            <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-xl bg-muted/10 p-10 text-center">
+                                <div className="bg-muted p-4 rounded-full mb-4">
+                                    <Upload className="h-8 w-8 text-muted-foreground" />
                                 </div>
-                            )}
-                        </div>
-                    )}
+                                <h3 className="text-lg font-semibold mb-2">Upload Context</h3>
+                                <p className="text-sm text-muted-foreground mb-6 max-w-xs">
+                                    Drag and drop your PRD, Service Document, or Sales Deck (PDF, TXT).
+                                </p>
 
-                    {step === "analyzing" && (
-                        <div className="h-full flex flex-col items-center justify-center space-y-6">
-                            <Loader2 className="h-12 w-12 text-purple-600 animate-spin" />
-                            <div className="text-center space-y-2">
-                                <h3 className="text-lg font-semibold">Analyzing Documents...</h3>
-                                <p className="text-sm text-muted-foreground">Extracting ICP, Value Props, and Objections.</p>
-                            </div>
-                            <div className="w-64 h-2 bg-muted rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-purple-600 transition-all duration-200"
-                                    style={{ width: `${analysisProgress}%` }}
+                                <Input
+                                    id="file-upload"
+                                    type="file"
+                                    className="hidden"
+                                    onChange={handleFileChange}
                                 />
-                            </div>
-                        </div>
-                    )}
 
-
-                    {step === "chat" && (
-                        <div className="grid grid-cols-12 h-full gap-6">
-                            {/* LEFT: Supervisor Chat */}
-                            <div className="col-span-5 flex flex-col h-full border-r pr-6">
-                                <div className="mb-4">
-                                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                                        <Bot className="h-5 w-5 text-purple-600" /> Agent Supervisor
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Refine the strategy or ask for adjustments.
-                                    </p>
-                                </div>
-
-                                <ScrollArea className="flex-1 pr-4 mb-4">
-                                    <div className="space-y-4">
-                                        {messages.map((msg, i) => (
-                                            <div key={i} className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
-                                                <div className={cn(
-                                                    "p-3 rounded-lg text-sm max-w-[90%]",
-                                                    msg.role === 'assistant' ? "bg-muted" : "bg-purple-600 text-white"
-                                                )}>
-                                                    {msg.content}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-
-                                <div className="flex gap-2">
-                                    <Input
-                                        placeholder="E.g., 'Target only SaaS companies'..."
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                        disabled={isStrategyApproved}
-                                    />
-                                    <Button size="icon" onClick={handleSendMessage} disabled={isStrategyApproved}>
-                                        <Send className="h-4 w-4" />
+                                {!file ? (
+                                    <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
+                                        Select File
                                     </Button>
-                                </div>
-                            </div>
-
-                            {/* RIGHT: Strategy & Config */}
-                            <div className="col-span-7 flex flex-col h-full overflow-hidden">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                                        <Target className="h-5 w-5 text-primary" /> Campaign Configuration
-                                    </h3>
-                                    {isStrategyApproved ? (
-                                        <span className="flex items-center gap-1 text-green-500 text-sm font-bold bg-green-500/10 px-2 py-1 rounded">
-                                            <CheckCircle2 className="h-4 w-4" /> APPROVED
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded font-medium">
-                                            Pending Approval
-                                        </span>
-                                    )}
-                                </div>
-
-                                <ScrollArea className="flex-1 pr-2 mb-4">
-                                    <div className="space-y-6">
-                                        {/* Toggles */}
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <ConfigCard
-                                                title="Email Sequence"
-                                                icon={<FileText className="h-4 w-4" />}
-                                                active={campaignConfig.emailSequence}
-                                                onClick={() => setCampaignConfig(p => ({ ...p, emailSequence: !p.emailSequence }))}
-                                            />
-                                            <ConfigCard
-                                                title="Outbound Voice"
-                                                icon={<Bot className="h-4 w-4" />}
-                                                active={campaignConfig.outboundVoice}
-                                                onClick={() => setCampaignConfig(p => ({ ...p, outboundVoice: !p.outboundVoice }))}
-                                            />
-                                            <ConfigCard
-                                                title="Inbound Reception"
-                                                icon={<User className="h-4 w-4" />}
-                                                active={campaignConfig.inboundReceptionist}
-                                                onClick={() => setCampaignConfig(p => ({ ...p, inboundReceptionist: !p.inboundReceptionist }))}
-                                            />
+                                ) : (
+                                    <div className="space-y-4 w-full">
+                                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
+                                            <FileText className="h-5 w-5 text-purple-500" />
+                                            <div className="flex-1 text-left truncate font-medium text-sm">
+                                                {file.name}
+                                            </div>
+                                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFile(null)}>
+                                                <span className="sr-only">Remove</span>x
+                                            </Button>
                                         </div>
-
-                                        {/* Strategy Preview */}
-                                        {expertAnalysis?.sectors.slice(0, 1).map((sector, idx) => (
-                                            <div key={idx} className="border rounded-xl p-4 bg-muted/20">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-semibold text-base">{sector.sector}</h4>
-                                                    <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Top Pick</span>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mb-3">{sector.valueProposition}</p>
-
-                                                <div className="space-y-2">
-                                                    <div className="flex gap-2 text-xs">
-                                                        <span className="font-semibold text-purple-600">Roles:</span>
-                                                        <span>{sector.targetRoles.join(", ")}</span>
-                                                    </div>
-                                                    <div className="flex gap-2 text-xs">
-                                                        <span className="font-semibold text-green-600">Mix:</span>
-                                                        <span>{sector.strategyMix || "Standard Outreach"}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                        <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={startAnalysis}>
+                                            Analyze Document
+                                        </Button>
                                     </div>
-                                </ScrollArea>
+                                )}
+                            </div>
+                        )}
 
-                                <div className="border-t pt-4 flex gap-3">
-                                    {!isStrategyApproved ? (
-                                        <Button
-                                            className="flex-1 bg-green-600 hover:bg-green-700"
-                                            onClick={() => setStrategyApproved(true)}
-                                        >
-                                            <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Strategy
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="outline"
-                                            className="flex-1"
-                                            onClick={() => setStrategyApproved(false)}
-                                        >
-                                            Modify Strategy
-                                        </Button>
-                                    )}
-
-                                    <Button
-                                        className="flex-1"
-                                        disabled={!isStrategyApproved}
-                                        onClick={() => setOpen(false)} // Launch Logic
-                                    >
-                                        Launch Campaign
-                                    </Button>
+                        {step === "analyzing" && (
+                            <div className="h-full flex flex-col items-center justify-center space-y-6">
+                                <Loader2 className="h-12 w-12 text-purple-600 animate-spin" />
+                                <div className="text-center space-y-2">
+                                    <h3 className="text-lg font-semibold">Analyzing Documents...</h3>
+                                    <p className="text-sm text-muted-foreground">Extracting ICP, Value Props, and Objections.</p>
+                                </div>
+                                <div className="w-64 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-purple-600 transition-all duration-200"
+                                        style={{ width: `${analysisProgress}%` }}
+                                    />
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+
+
+                        {step === "chat" && (
+                            <div className="grid grid-cols-12 h-full gap-6">
+                                {/* LEFT: Supervisor Chat */}
+                                <div className="col-span-5 flex flex-col h-full border-r pr-6">
+                                    <div className="mb-4">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                                            <Bot className="h-5 w-5 text-purple-600" /> Agent Supervisor
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Refine the strategy or ask for adjustments.
+                                        </p>
+                                    </div>
+
+                                    <ScrollArea className="flex-1 pr-4 mb-4">
+                                        <div className="space-y-4">
+                                            {messages.map((msg, i) => (
+                                                <div key={i} className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
+                                                    <div className={cn(
+                                                        "p-3 rounded-lg text-sm max-w-[90%]",
+                                                        msg.role === 'assistant' ? "bg-muted" : "bg-purple-600 text-white"
+                                                    )}>
+                                                        {msg.content}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="E.g., 'Target only SaaS companies'..."
+                                            value={chatInput}
+                                            onChange={(e) => setChatInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                            disabled={isStrategyApproved}
+                                        />
+                                        <Button size="icon" onClick={handleSendMessage} disabled={isStrategyApproved}>
+                                            <Send className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* RIGHT: Strategy & Config */}
+                                <div className="col-span-7 flex flex-col h-full overflow-hidden">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                                            <Target className="h-5 w-5 text-primary" /> Campaign Configuration
+                                        </h3>
+                                        {isStrategyApproved ? (
+                                            <span className="flex items-center gap-1 text-green-500 text-sm font-bold bg-green-500/10 px-2 py-1 rounded">
+                                                <CheckCircle2 className="h-4 w-4" /> APPROVED
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded font-medium">
+                                                Pending Approval
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <ScrollArea className="flex-1 pr-2 mb-4">
+                                        <div className="space-y-6">
+                                            {/* Toggles */}
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <ConfigCard
+                                                    title="Email Sequence"
+                                                    icon={<FileText className="h-4 w-4" />}
+                                                    active={campaignConfig.emailSequence}
+                                                    onClick={() => setCampaignConfig(p => ({ ...p, emailSequence: !p.emailSequence }))}
+                                                />
+                                                <ConfigCard
+                                                    title="Outbound Voice"
+                                                    icon={<Bot className="h-4 w-4" />}
+                                                    active={campaignConfig.outboundVoice}
+                                                    onClick={() => setCampaignConfig(p => ({ ...p, outboundVoice: !p.outboundVoice }))}
+                                                />
+                                                <ConfigCard
+                                                    title="Inbound Reception"
+                                                    icon={<User className="h-4 w-4" />}
+                                                    active={campaignConfig.inboundReceptionist}
+                                                    onClick={() => setCampaignConfig(p => ({ ...p, inboundReceptionist: !p.inboundReceptionist }))}
+                                                />
+                                            </div>
+
+                                            {/* Strategy Preview */}
+                                            {expertAnalysis?.sectors.slice(0, 1).map((sector, idx) => (
+                                                <div key={idx} className="border rounded-xl p-4 bg-muted/20">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h4 className="font-semibold text-base">{sector.sector}</h4>
+                                                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Top Pick</span>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mb-3">{sector.valueProposition}</p>
+
+                                                    <div className="space-y-2">
+                                                        <div className="flex gap-2 text-xs">
+                                                            <span className="font-semibold text-purple-600">Roles:</span>
+                                                            <span>{sector.targetRoles.join(", ")}</span>
+                                                        </div>
+                                                        <div className="flex gap-2 text-xs">
+                                                            <span className="font-semibold text-green-600">Mix:</span>
+                                                            <span>{sector.strategyMix || "Standard Outreach"}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+
+                                    <div className="border-t pt-4 flex gap-3">
+                                        {!isStrategyApproved ? (
+                                            <Button
+                                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                                onClick={() => setStrategyApproved(true)}
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Strategy
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1"
+                                                onClick={() => setStrategyApproved(false)}
+                                            >
+                                                Modify Strategy
+                                            </Button>
+                                        )}
+
+                                        <Button
+                                            className="flex-1"
+                                            disabled={!isStrategyApproved}
+                                            onClick={() => setOpen(false)} // Launch Logic
+                                        >
+                                            Launch Campaign
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

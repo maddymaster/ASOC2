@@ -10,9 +10,17 @@ export default function DashboardLayout({
 }) {
     return (
         <MissionControlProvider>
-            <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-50">
-                <Sidebar />
-                <main className="flex-1 h-full overflow-y-auto bg-slate-900">
+            <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-50 relative">
+                {/* Fixed Sidebar - z-10 for consistent layering */}
+                <aside className="fixed left-0 top-0 h-full w-64 z-10 bg-slate-950">
+                    <Sidebar />
+                </aside>
+
+                {/* Main Content - offset by sidebar width, z-0 base layer */}
+                <main
+                    className="ml-64 flex-1 h-full overflow-y-auto bg-slate-900 z-0"
+                    style={{ width: 'calc(100vw - 16rem)' }}
+                >
                     {children}
                 </main>
             </div>
