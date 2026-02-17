@@ -201,21 +201,46 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     };
 
     const resetCombinedState = () => {
+        // 1. Clear Analysis & Strategy
         setExpertAnalysis(null);
         setStrategy(null);
         setSelectedSector(null);
         setStrategyApproved(false);
+        setStrategyMode('IDLE');
+
+        // 2. Clear Operational Data
         setLeads([]);
+        setEmailQueue([]);
+        setActiveCall(null);
+        setCallHistory([]);
+        setLeadScores(new Map());
+        setActivityLog([]);
+        setAgentStatus('idle');
+
+        // 3. Reset Messages to Initial Greeting
         setMessages([
             {
                 role: 'assistant',
                 content: "Hello! I'm your Mission Control assistant. Upload your PRD or tell me about your service to generate a targeted lead strategy."
             }
         ]);
+
+        // 4. Reset Config to Defaults
+        setCampaignConfig({
+            emailSequence: true,
+            outboundVoice: false,
+            inboundReceptionist: false
+        });
+
+        // 5. Navigate to Strategy
         setActiveTab("strategy");
-        setStrategyMode('IDLE');
-        setAgentStatus('idle');
-        setActivityLog([]);
+
+        // 6. Clear Local Storage
+        try {
+            localStorage.removeItem('mission_control_analysis');
+        } catch (e) {
+            console.error("Failed to clear local storage", e);
+        }
     };
 
     const addToHistory = (analysis: PRDAnalysisResult) => {

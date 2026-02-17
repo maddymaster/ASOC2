@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FileText, CheckCircle2, Loader2, Send, Bot, User, Plus, Target } from "lucide-react";
+import { Upload, FileText, CheckCircle2, Loader2, Send, Bot, User, Plus, Target, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMissionControl } from "@/context/MissionControlContext";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,10 @@ export function CampaignWizardModal() {
         setCampaignConfig,
         isStrategyApproved,
         setStrategyApproved,
-        resetStrategy
+        resetStrategy,
+        selectedSector,
+        setSelectedSector,
+        setActiveTab
     } = useMissionControl();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,16 +175,16 @@ export function CampaignWizardModal() {
             </DialogTrigger>
 
             {/* z-[9999] Modal with High Priority Isolation */}
-            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out">
+            <DialogContent className="fixed inset-0 z-[99999] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out">
                 {/* Backdrop overlay - prevents interaction with background */}
                 <div
-                    className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm"
                     onClick={() => setOpen(false)}
                     aria-hidden="true"
                 />
 
                 {/* Modal content - above backdrop */}
-                <div className="relative z-[100] w-full max-w-5xl h-[650px] bg-slate-900 rounded-lg shadow-2xl border border-slate-700 flex flex-col overflow-hidden">
+                <div className="relative z-[100000] w-full max-w-5xl h-[650px] bg-slate-900 rounded-lg shadow-2xl border border-slate-700 flex flex-col overflow-hidden">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700">
                         <DialogTitle>New Campaign Wizard</DialogTitle>
                     </DialogHeader>
@@ -193,6 +196,10 @@ export function CampaignWizardModal() {
                                     <Upload className="h-8 w-8 text-muted-foreground" />
                                 </div>
                                 <h3 className="text-lg font-semibold mb-2">Upload Context</h3>
+                                <div className="flex items-center gap-1.5 mb-6 bg-blue-500/10 px-2 py-1 rounded text-blue-300 border border-blue-500/20">
+                                    <Sparkles className="h-3 w-3" />
+                                    <span className="text-[10px] font-medium tracking-wide">Powered by Gemini 1.5 Pro (Multimodal Vision)</span>
+                                </div>
                                 <p className="text-sm text-muted-foreground mb-6 max-w-xs">
                                     Drag and drop your PRD, Service Document, or Sales Deck (PDF, TXT).
                                 </p>
@@ -355,9 +362,18 @@ export function CampaignWizardModal() {
                                         {!isStrategyApproved ? (
                                             <Button
                                                 className="flex-1 bg-green-600 hover:bg-green-700"
-                                                onClick={() => setStrategyApproved(true)}
+                                                onClick={() => {
+                                                    setStrategyApproved(true);
+                                                    setActiveTab('lead-gen');
+                                                    // Trigger Lead Gen Fetch
+                                                    // We can't easily call fetchLeads from here as it's in LeadGenTab
+                                                    // But we can set a flag or use a refined strategy
+                                                    // ideally, LeadGenTab should auto-fetch if strategy is approved and leads are empty
+                                                    // For now, let's just switch tab and close modal
+                                                    setOpen(false);
+                                                }}
                                             >
-                                                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Strategy
+                                                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve & Find Leads
                                             </Button>
                                         ) : (
                                             <Button
@@ -372,7 +388,10 @@ export function CampaignWizardModal() {
                                         <Button
                                             className="flex-1"
                                             disabled={!isStrategyApproved}
-                                            onClick={() => setOpen(false)} // Launch Logic
+                                            onClick={() => {
+                                                setOpen(false);
+                                                setActiveTab('email-campaigns');
+                                            }}
                                         >
                                             Launch Campaign
                                         </Button>

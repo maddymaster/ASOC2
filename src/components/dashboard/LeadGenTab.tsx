@@ -88,16 +88,25 @@ export function LeadGenTab() {
                 });
 
                 if (data.errorType === 'auth') {
-                    toast.error("API Key Required", {
-                        description: "Please configure your Apollo API key in Demo Settings"
+                    toast.error("Integration Error", {
+                        description: "Valid Apollo API status check failed. Check settings.",
+                        action: {
+                            label: "Settings",
+                            onClick: () => console.log("Navigate to settings")
+                        }
                     });
                 } else if (data.errorType === 'rate_limit') {
-                    toast.warning("Rate Limit Reached", {
-                        description: `Please wait ${data.retryAfter || 60} seconds before trying again`
+                    toast.warning("Apollo API Rate Limit", {
+                        description: `Usage limit reached. Auto-retrying in ${data.retryAfter || 60}s...`,
+                        duration: 5000
+                    });
+                } else if (data.message && data.message.includes("401")) {
+                    toast.error("Authentication Failed", {
+                        description: "Your Apollo Key is invalid or expired."
                     });
                 } else {
                     toast.error("Lead Fetch Failed", {
-                        description: errorMsg
+                        description: errorMsg || "Unknown Apollo API error. Please try again."
                     });
                 }
             }
