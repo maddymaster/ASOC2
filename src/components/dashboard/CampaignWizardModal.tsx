@@ -161,14 +161,18 @@ export function CampaignWizardModal() {
                         setStep("upload");
                         setFile(null);
                         setAnalysisProgress(0);
+                        // Reset local chat state to remove "ghost" conversations
+                        setMessages([
+                            { role: 'assistant', content: "I've analyzed your document. It seems you're launching a new 'Enterprise Security' product. Shall I target CISOs in FinTech?" }
+                        ]);
                     }}
                 >
                     <Plus className="h-4 w-4 mr-2" /> New Campaign
                 </Button>
             </DialogTrigger>
 
-            {/* z-[100] Modal with Backdrop Blur Isolation */}
-            <DialogContent className="fixed inset-0 z-[100] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out">
+            {/* z-[9999] Modal with High Priority Isolation */}
+            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out">
                 {/* Backdrop overlay - prevents interaction with background */}
                 <div
                     className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"

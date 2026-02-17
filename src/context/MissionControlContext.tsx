@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Types
 export interface Message {
@@ -154,6 +154,26 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     const [callHistory, setCallHistory] = useState<Call[]>([]);
     const [expertAnalysis, setExpertAnalysis] = useState<PRDAnalysisResult | null>(null);
     const [analysisHistory, setAnalysisHistory] = useState<PRDAnalysisResult[]>([]);
+
+    // Persistence for Analysis
+    useEffect(() => {
+        const saved = localStorage.getItem('mission_control_analysis');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setExpertAnalysis(parsed);
+                setStrategyApproved(true);
+            } catch (e) {
+                console.error("Failed to restore analysis", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (expertAnalysis) {
+            localStorage.setItem('mission_control_analysis', JSON.stringify(expertAnalysis));
+        }
+    }, [expertAnalysis]);
 
     const [campaignConfig, setCampaignConfig] = useState({
         emailSequence: true,

@@ -155,12 +155,44 @@ export function LeadGenTab() {
                 const scoreData = await res.json();
 
                 if (scoreData.success) {
+                    const score = scoreData.score;
                     setLeadScore(lead.id, {
-                        score: scoreData.score,
+                        score: score,
                         reasoning: scoreData.reasoning,
                         confidence: scoreData.confidence,
                         keyFactors: scoreData.keyFactors
                     });
+
+                    // AUTO-DRAFT TRIGGER (Score >= 80)
+                    if (score >= 80) {
+                        toast.info(`High Value Lead Detected: ${lead.name}`, {
+                            description: "Auto-drafting personalized email...",
+                            duration: 3000
+                        });
+
+                        try {
+                            const draftRes = await fetch('/api/email/draft', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    leadId: lead.id,
+                                    companyName: lead.company,
+                                    contactName: lead.name,
+                                    role: (lead as any).role,
+                                    rationale: scoreData.reasoning,
+                                    valueProp: strategy.rationale
+                                })
+                            });
+
+                            if (draftRes.ok) {
+                                toast.success("Draft Created", {
+                                    description: `Ready for review in Email Lab for ${lead.name}`
+                                });
+                            }
+                        } catch (draftError) {
+                            console.error("Auto-draft failed", draftError);
+                        }
+                    }
                 }
             } catch (e) {
                 console.error(`Failed to score lead ${lead.id}:`, e);
@@ -310,112 +342,116 @@ export function LeadGenTab() {
             )}
 
             {/* Leads Grid - Bento Box Cards */}
-            <ScrollArea className="flex-1 -mx-6 px-6">
-                {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
-                        {[1, 2, 3].map((i) => (
-                            <Card key={i} className="bg-slate-900/40 animate-pulse">
-                                <CardHeader>
-                                    <div className="h-4 bg-slate-800 rounded w-3/4"></div>
-                                    <div className="h-3 bg-slate-800 rounded w-1/2 mt-2"></div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        <div className="h-3 bg-slate-800 rounded"></div>
-                                        <div className="h-3 bg-slate-800 rounded w-5/6"></div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                ) : leads.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-center">
-                        <UsersIcon className="h-12 w-12 text-slate-600 mb-4" />
-                        <p className="text-slate-400">No leads found. Click "Refresh Leads" to fetch from Apollo.</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
-                        {leads.map((lead) => {
-                            const score = leadScores.get(lead.id);
-                            const scoreValue = score?.score || lead.score || 50;
-
-                            return (
-                                <Card
-                                    key={lead.id}
-                                    className="group hover:scale-[1.02] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-900/10"
-                                >
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="flex-1">
-                                                <CardTitle className="text-base font-semibold text-white group-hover:text-blue-200 transition-colors line-clamp-1">
-                                                    {lead.name}
-                                                </CardTitle>
-                                                <CardDescription className="text-xs text-slate-400 mt-1 line-clamp-1">
-                                                    {(lead as any).role || 'Contact'}
-                                                </CardDescription>
+            <div className="flex-1 min-h-0">
+                <ScrollArea className="h-full">
+                    <div className="px-6 pb-6">
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[1, 2, 3].map((i) => (
+                                    <Card key={i} className="bg-slate-900/40 animate-pulse">
+                                        <CardHeader>
+                                            <div className="h-4 bg-slate-800 rounded w-3/4"></div>
+                                            <div className="h-3 bg-slate-800 rounded w-1/2 mt-2"></div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-2">
+                                                <div className="h-3 bg-slate-800 rounded"></div>
+                                                <div className="h-3 bg-slate-800 rounded w-5/6"></div>
                                             </div>
-                                            <Badge className={cn("text-xs font-bold shrink-0", getScoreColor(scoreValue))}>
-                                                {scoreValue}
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : leads.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-64 text-center">
+                                <UsersIcon className="h-12 w-12 text-slate-600 mb-4" />
+                                <p className="text-slate-400">No leads found. Click "Refresh Leads" to fetch from Apollo.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {leads.map((lead) => {
+                                    const score = leadScores.get(lead.id);
+                                    const scoreValue = score?.score || lead.score || 50;
 
-                                    <CardContent className="space-y-3">
-                                        <div className="flex items-center gap-2 text-xs text-slate-300">
-                                            <Building2 className="h-3 w-3 text-slate-500" />
-                                            <span className="line-clamp-1">{lead.company}</span>
-                                        </div>
-
-                                        {(lead as any).location && (
-                                            <div className="flex items-center gap-2 text-xs text-slate-300">
-                                                <MapPin className="h-3 w-3 text-slate-500" />
-                                                <span>{(lead as any).location}</span>
-                                            </div>
-                                        )}
-
-                                        {(lead as any).employees && (
-                                            <div className="flex items-center gap-2 text-xs text-slate-300">
-                                                <UsersIcon className="h-3 w-3 text-slate-500" />
-                                                <span>{(lead as any).employees} employees</span>
-                                            </div>
-                                        )}
-
-                                        {score && (
-                                            <div className="pt-2 border-t border-slate-800">
-                                                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">AI Analysis</p>
-                                                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-                                                    {score.reasoning}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 border-slate-700">
-                                                        {getScoreLabel(scoreValue)}
+                                    return (
+                                        <Card
+                                            key={lead.id}
+                                            className="group hover:scale-[1.02] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-900/10"
+                                        >
+                                            <CardHeader className="pb-3">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex-1">
+                                                        <CardTitle className="text-base font-semibold text-white group-hover:text-blue-200 transition-colors line-clamp-1">
+                                                            {lead.name}
+                                                        </CardTitle>
+                                                        <CardDescription className="text-xs text-slate-400 mt-1 line-clamp-1">
+                                                            {(lead as any).role || 'Contact'}
+                                                        </CardDescription>
+                                                    </div>
+                                                    <Badge className={cn("text-xs font-bold shrink-0", getScoreColor(scoreValue))}>
+                                                        {scoreValue}
                                                     </Badge>
-                                                    <span className="text-[10px] text-slate-600">
-                                                        {score.confidence} confidence
-                                                    </span>
                                                 </div>
-                                            </div>
-                                        )}
+                                            </CardHeader>
 
-                                        <div className="flex gap-2 pt-2">
-                                            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-blue-500/10 hover:border-blue-500/30">
-                                                <Mail className="h-3 w-3" />
-                                                Email
-                                            </Button>
-                                            {(lead as any).phone && (
-                                                <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-green-500/10 hover:border-green-500/30">
-                                                    <Phone className="h-3 w-3" />
-                                                    Call
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+                                            <CardContent className="space-y-3">
+                                                <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <Building2 className="h-3 w-3 text-slate-500" />
+                                                    <span className="line-clamp-1">{lead.company}</span>
+                                                </div>
+
+                                                {(lead as any).location && (
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <MapPin className="h-3 w-3 text-slate-500" />
+                                                        <span>{(lead as any).location}</span>
+                                                    </div>
+                                                )}
+
+                                                {(lead as any).employees && (
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <UsersIcon className="h-3 w-3 text-slate-500" />
+                                                        <span>{(lead as any).employees} employees</span>
+                                                    </div>
+                                                )}
+
+                                                {score && (
+                                                    <div className="pt-2 border-t border-slate-800">
+                                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">AI Analysis</p>
+                                                        <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                                                            {score.reasoning}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 border-slate-700">
+                                                                {getScoreLabel(scoreValue)}
+                                                            </Badge>
+                                                            <span className="text-[10px] text-slate-600">
+                                                                {score.confidence} confidence
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex gap-2 pt-2">
+                                                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-blue-500/10 hover:border-blue-500/30">
+                                                        <Mail className="h-3 w-3" />
+                                                        Email
+                                                    </Button>
+                                                    {(lead as any).phone && (
+                                                        <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-green-500/10 hover:border-green-500/30">
+                                                            <Phone className="h-3 w-3" />
+                                                            Call
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                )}
-            </ScrollArea>
+                </ScrollArea>
+            </div>
         </div>
     );
 }

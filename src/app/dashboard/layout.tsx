@@ -11,8 +11,8 @@ export default function DashboardLayout({
     return (
         <MissionControlProvider>
             <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-50 relative">
-                {/* Fixed Sidebar - z-10 for consistent layering */}
-                <aside className="fixed left-0 top-0 h-full w-64 z-10 bg-slate-950">
+                {/* Fixed Sidebar - z-[40] for consistent layering above content but below modals */}
+                <aside className="fixed left-0 top-0 h-full w-64 z-[40] bg-slate-950">
                     <Sidebar />
                 </aside>
 

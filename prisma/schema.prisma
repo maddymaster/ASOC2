@@ -79,8 +79,23 @@ model Lead {
   meetingTime DateTime? // Populated by Calendly
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  isVerified  Boolean      @default(false)
+  verificationToken String?
   CallLogs    CallLog[]
   EmailDrafts EmailDraft[]
+  OutboundLogs OutboundLog[]
+}
+
+model OutboundLog {
+  id          String   @id @default(uuid())
+  leadId      String
+  Lead        Lead     @relation(fields: [leadId], references: [id])
+  status      String   @default("SENT") // CREATED, SENT, DELIVERED, OPENED, CLICKED, FAILED
+  providerId  String?  // e.g. Resend ID
+  subject     String?
+  metadata    String?  // JSON context
+  sentAt      DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model EmailDraft {

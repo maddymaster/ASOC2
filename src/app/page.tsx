@@ -1,110 +1,191 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, TrendingUp, Clock, Target, Shield, Brain } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, TrendingUp, Clock, Target, Shield, Brain, Globe, Lock, Server } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
+    // Structured Data for SEO (SoftwareApplication)
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "DataFrontier Mission Control",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "description": "Autonomous revenue infrastructure for enterprise sales teams. AI agents that research, qualify, and engage leads."
+    };
+
     return (
-        <div className="flex flex-col min-h-screen bg-slate-950 text-slate-50">
-            {/* Sticky Header */}
-            <header className="px-6 lg:px-8 h-16 flex items-center border-b border-slate-800/50 sticky top-0 bg-slate-950/95 backdrop-blur-xl z-50">
-                <Link className="flex items-center justify-center font-bold text-xl tracking-tight" href="/">
-                    <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">DataFrontier</span>
-                </Link>
-                <nav className="ml-auto flex gap-6 items-center">
-                    <Link className="text-sm font-medium text-slate-300 hover:text-white transition-colors" href="/use-cases">Use Cases</Link>
-                    <Link className="text-sm font-medium text-slate-300 hover:text-white transition-colors" href="/resources">Resources</Link>
-                    <Link className="text-sm font-medium text-slate-300 hover:text-white transition-colors" href="/pricing">Pricing</Link>
-                    <Link className="text-sm font-medium text-slate-300 hover:text-white transition-colors" href="/blog">Blog</Link>
-                    <Link href="/login">
-                        <Button size="sm" variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800">Login</Button>
+        <div className="flex flex-col min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-blue-500/30">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+
+            {/* Sticky Header - Glassmorphism */}
+            <header className="fixed w-full top-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <Link className="flex items-center gap-2 font-bold text-xl tracking-tight" href="/">
+                        <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                            <Zap className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">DataFrontier</span>
                     </Link>
-                    <Link href="/contact">
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/30">
-                            Book Demo
-                        </Button>
-                    </Link>
-                </nav>
+
+                    <nav className="hidden md:flex gap-8 items-center">
+                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/use-cases">Use Cases</Link>
+                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/features">Features</Link>
+                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/pricing">Pricing</Link>
+                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/resources">Resources</Link>
+                    </nav>
+
+                    <div className="flex items-center gap-4">
+                        <Link href="/login" className="hidden sm:block">
+                            <Button size="sm" variant="ghost" className="text-slate-300 hover:text-white hover:bg-white/5">Login</Button>
+                        </Link>
+                        <Link href="/contact">
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 transition-all">
+                                Book Demo
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
             </header>
 
-            <main className="flex-1">
-                {/* Hero Section - Story-Driven */}
-                <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
-                    {/* Background Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-slate-950 to-slate-950" />
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950" />
+            <main className="flex-1 pt-16">
+                {/* Hero Section */}
+                <section className="relative w-full py-24 md:py-32 overflow-hidden">
+                    {/* Background Effects */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none opacity-50" />
+                    <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
 
-                    <div className="container relative z-10 px-4 md:px-6 mx-auto">
-                        <div className="flex flex-col items-center space-y-8 text-center">
-                            {/* Eyebrow */}
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm">
-                                <Zap className="h-4 w-4 text-blue-400" />
-                                <span className="text-sm font-medium text-blue-300">Trusted by 200+ Enterprise Sales Teams</span>
+                    <div className="container relative z-10 px-4 mx-auto text-center">
+                        <Badge variant="outline" className="mb-8 border-blue-500/30 bg-blue-500/10 text-blue-400 px-4 py-1.5 backdrop-blur-sm rounded-full">
+                            <span className="mr-2">✨</span>
+                            The Operating System for Autonomous Revenue
+                        </Badge>
+
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 leading-[1.1]">
+                            Scale Your Sales Team <br />
+                            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                                Without Hiring
+                            </span>
+                        </h1>
+
+                        <p className="mx-auto max-w-2xl text-xl text-slate-400 font-light leading-relaxed mb-10">
+                            Deploy AI agents that analyze your product, identify perfect-fit accounts,
+                            and generate qualified pipeline autonomously. <span className="text-white font-medium">SOC2 Type II Ready.</span>
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+                            <Link href="/dashboard">
+                                <Button size="lg" className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-200 font-semibold text-lg shadow-xl shadow-white/5 transition-all">
+                                    Start Free Analysis
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </Button>
+                            </Link>
+                            <Link href="/use-cases">
+                                <Button size="lg" variant="outline" className="h-14 px-8 border-slate-700 bg-transparent text-white hover:bg-slate-800 text-lg">
+                                    View Use Cases
+                                </Button>
+                            </Link>
+                        </div>
+
+                        {/* Logo Strip Trust Signal */}
+                        <div className="mt-20 pt-10 border-t border-white/5">
+                            <p className="text-sm font-medium text-slate-500 mb-6 uppercase tracking-widest">Trusted by Next-Gen Revenue Teams</p>
+                            <div className="flex flex-wrap justify-center gap-12 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+                                {/* Placeholders for logos - using text for now, but style implies logos */}
+                                <span className="text-xl font-bold text-slate-300">ACME Corp</span>
+                                <span className="text-xl font-bold text-slate-300">GlobalTech</span>
+                                <span className="text-xl font-bold text-slate-300">Nebula AI</span>
+                                <span className="text-xl font-bold text-slate-300">Vertex Ventures</span>
+                                <span className="text-xl font-bold text-slate-300">BlueSky</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Micro-Demo / Dashboard Preview */}
+                <section className="py-12 md:py-24 relative">
+                    <div className="container px-4 mx-auto">
+                        <div className="relative rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-xl p-2 md:p-4 shadow-2xl">
+                            {/* Fake Browser Toolbar */}
+                            <div className="h-8 flex items-center gap-2 px-4 border-b border-white/5 mb-4">
+                                <div className="flex gap-1.5">
+                                    <div className="h-3 w-3 rounded-full bg-red-500/20 border border-red-500/50" />
+                                    <div className="h-3 w-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
+                                    <div className="h-3 w-3 rounded-full bg-green-500/20 border border-green-500/50" />
+                                </div>
+                                <div className="ml-4 flex-1 max-w-sm h-5 bg-slate-800/50 rounded text-xs flex items-center px-3 text-slate-500 font-mono">
+                                    mission-control.datafrontier.ai/dashboard
+                                </div>
                             </div>
 
-                            {/* Headline */}
-                            <div className="space-y-4 max-w-4xl">
-                                <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
-                                    Turn Your PRD into a{" "}
-                                    <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent">
-                                        Self-Driving Sales Engine
-                                    </span>
-                                </h1>
-                                <p className="mx-auto max-w-2xl text-xl md:text-2xl text-slate-300 font-light leading-relaxed">
-                                    AI-powered orchestration that converts product docs into qualified pipeline in <span className="font-bold text-blue-400">47 seconds</span>. No manual research. No data entry. Just results.
-                                </p>
-                            </div>
-
-                            {/* CTAs */}
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <Link href="/dashboard">
-                                    <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white text-lg px-8 py-6 shadow-2xl shadow-blue-900/40 group">
-                                        Start Free Analysis
-                                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                    </Button>
-                                </Link>
-                                <Link href="#demo">
-                                    <Button size="lg" variant="outline" className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white text-lg px-8 py-6">
-                                        Watch It Work
-                                    </Button>
-                                </Link>
-                            </div>
-
-                            {/* Micro-Demo Preview */}
-                            <div className="mt-12 w-full max-w-5xl">
-                                <div className="relative rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm p-8 shadow-2xl">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-3 w-3 rounded-full bg-red-500" />
-                                            <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                                            <div className="h-3 w-3 rounded-full bg-green-500" />
+                            {/* Abstract Representation of Dashboard for Landing Page */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-8">
+                                <div className="lg:col-span-2 space-y-6">
+                                    {/* Strategy Card */}
+                                    <div className="p-6 rounded-xl bg-slate-800/30 border border-white/5 flex gap-4 items-start">
+                                        <div className="p-3 bg-blue-500/20 rounded-lg text-blue-400 mt-1">
+                                            <Target className="h-6 w-6" />
                                         </div>
-                                        <span className="text-xs text-slate-500 font-mono">Live Demo</span>
+                                        <div>
+                                            <h3 className="font-semibold text-white mb-1">Active Campaign: FinTech Enterprise</h3>
+                                            <p className="text-slate-400 text-sm mb-4">Targeting VP Sales at Series B+ FinTechs in North America.</p>
+                                            <div className="flex gap-4 text-xs font-mono text-slate-500">
+                                                <span className="px-2 py-1 bg-blue-500/10 rounded text-blue-300">Status: ACTIVE</span>
+                                                <span>•</span>
+                                                <span className="text-emerald-400">142 Leads Found</span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Animated Flow */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                                            <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                                <Target className="h-6 w-6 text-blue-400" />
+                                    {/* Lead List Stub */}
+                                    <div className="space-y-3">
+                                        {[1, 2, 3].map((i) => (
+                                            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-slate-800/20 border border-white/5 hover:bg-slate-800/40 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-full bg-slate-700/50" />
+                                                    <div>
+                                                        <div className="h-3 w-24 bg-slate-700/50 rounded mb-1.5" />
+                                                        <div className="h-2 w-16 bg-slate-800 rounded" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-emerald-400 font-mono text-sm">9{8 - i}% Match</div>
+                                                </div>
                                             </div>
-                                            <span className="text-sm font-semibold text-white">Upload PRD</span>
-                                            <span className="text-xs text-slate-400 text-center">AI extracts ICPs & sectors</span>
-                                        </div>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                        <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                                            <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                                <Brain className="h-6 w-6 text-emerald-400" />
-                                            </div>
-                                            <span className="text-sm font-semibold text-white">Agent Analyzes</span>
-                                            <span className="text-xs text-slate-400 text-center">Identifies target personas</span>
+                                <div className="bg-slate-800/20 border border-white/5 rounded-xl p-6 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                        <Brain className="h-32 w-32" />
+                                    </div>
+                                    <h3 className="font-semibold text-white mb-6">Agent Analysis</h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
+                                            <p className="text-sm text-slate-300">Analyzed your 42-page PRD</p>
                                         </div>
-
-                                        <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                                            <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                                <TrendingUp className="h-6 w-6 text-purple-400" />
-                                            </div>
-                                            <span className="text-sm font-semibold text-white">Leads Flow In</span>
-                                            <span className="text-xs text-slate-400 text-center">Real contacts, ready to call</span>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
+                                            <p className="text-sm text-slate-300">Identified 3 core ICPs</p>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
+                                            <p className="text-sm text-slate-300">Generated 5 email variants</p>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <div className="h-5 w-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+                                            <p className="text-sm text-blue-300">Engaging leads...</p>
                                         </div>
                                     </div>
                                 </div>
@@ -113,182 +194,70 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* Proof Bar - Metrics Above Fold */}
-                <section className="w-full py-12 border-y border-slate-800/50 bg-slate-900/30">
-                    <div className="container px-4 md:px-6 mx-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                            <div className="flex flex-col items-center text-center">
-                                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent mb-2">
-                                    320%
-                                </div>
-                                <div className="text-sm text-slate-400">Increase in Qualified Pipeline</div>
-                            </div>
-                            <div className="flex flex-col items-center text-center">
-                                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent mb-2">
-                                    67%
-                                </div>
-                                <div className="text-sm text-slate-400">More Leads Per Month</div>
-                            </div>
-                            <div className="flex flex-col items-center text-center">
-                                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent mb-2">
-                                    47s
-                                </div>
-                                <div className="text-sm text-slate-400">PRD to Lead Discovery</div>
-                            </div>
-                            <div className="flex flex-col items-center text-center">
-                                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent mb-2">
-                                    0
-                                </div>
-                                <div className="text-sm text-slate-400">Manual Data Entry</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Problem/Solution Bento Grid */}
-                <section className="w-full py-20 md:py-32">
-                    <div className="container px-4 md:px-6 mx-auto">
-                        <div className="text-center mb-16">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                                From Chaos to <span className="text-blue-400">Clarity</span>
-                            </h2>
-                            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                                Sales teams waste 64% of their time on non-selling activities. We automate the noise.
+                {/* Features / Value Prop - Bento Grid */}
+                <section id="features" className="py-24 bg-slate-950">
+                    <div className="container px-4 mx-auto">
+                        <div className="max-w-3xl mx-auto text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-bold mb-6">Enterprise-Grade Infrastructure</h2>
+                            <p className="text-lg text-slate-400">
+                                Built for scale, security, and control. This isn't just another lead list tool—it's your entire outbound revenue stack.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Card 1 */}
-                            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/50 to-slate-900/30 p-8 hover:border-blue-500/30 transition-all duration-300">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                                        <Shield className="h-6 w-6 text-red-400" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+                            {/* Card 1: Large */}
+                            <div className="md:col-span-2 rounded-3xl bg-slate-900 border border-white/10 p-8 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] group-hover:bg-blue-500/20 transition-all" />
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="p-3 bg-blue-500/20 w-fit rounded-xl text-blue-400 mb-4">
+                                        <Globe className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-2">Before: Fragmented Data</h3>
-                                        <p className="text-slate-400 text-sm">Leads scattered across 12 tools. Stale CRMs. Manual enrichment.</p>
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-0 right-0 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <div className="text-9xl font-bold text-red-500">→</div>
-                                </div>
-                            </div>
-
-                            {/* Card 2 */}
-                            <div className="group relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/30 to-slate-900/30 p-8 shadow-lg shadow-blue-900/20">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="p-3 rounded-lg bg-blue-500/20 border border-blue-500/30">
-                                        <CheckCircle2 className="h-6 w-6 text-blue-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-white mb-2">After: Unified Intelligence</h3>
-                                        <p className="text-slate-300 text-sm">Real-time data from Apollo, enriched by AI, delivered to your inbox.</p>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Global Data Coverage</h3>
+                                        <p className="text-slate-400 max-w-md">Access 275M+ contacts with mobile numbers and verified emails. Powered by Apollo.io and enriched with proprietary intent signals.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Card 3 */}
-                            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/50 to-slate-900/30 p-8 hover:border-blue-500/30 transition-all duration-300">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                                        <Clock className="h-6 w-6 text-red-400" />
+                            {/* Card 2: Security */}
+                            <div className="rounded-3xl bg-slate-900 border border-white/10 p-8 relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+                                <div className="absolute bottom-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px]" />
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="p-3 bg-emerald-500/20 w-fit rounded-xl text-emerald-400 mb-4">
+                                        <Lock className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-2">Before: Manual Follow-ups</h3>
-                                        <p className="text-slate-400 text-sm">10-day sales cycles. Forgotten prospects. Low response rates.</p>
+                                        <h3 className="text-xl font-bold text-white mb-2">SOC2 Ready</h3>
+                                        <p className="text-slate-400 text-sm">Enterprise security standards. RBAC, SSO, and data encryption at rest.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Card 4 */}
-                            <div className="group relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/30 to-slate-900/30 p-8 shadow-lg shadow-blue-900/20">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="p-3 rounded-lg bg-blue-500/20 border border-blue-500/30">
-                                        <Zap className="h-6 w-6 text-blue-400" />
+                            {/* Card 3: Integration */}
+                            <div className="rounded-3xl bg-slate-900 border border-white/10 p-8 relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+                                <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/10 blur-[50px]" />
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="p-3 bg-purple-500/20 w-fit rounded-xl text-purple-400 mb-4">
+                                        <Server className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-2">After: Autonomous Agents</h3>
-                                        <p className="text-slate-300 text-sm">AI drafts emails, schedules calls, and nurtures leads while you sleep.</p>
+                                        <h3 className="text-xl font-bold text-white mb-2">CRM Sync</h3>
+                                        <p className="text-slate-400 text-sm">Bi-directional sync with Salesforce and HubSpot. No more data silos.</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
 
-                {/* Social Proof - Testimonials */}
-                <section className="w-full py-20 md:py-32 bg-slate-900/30 border-y border-slate-800/50">
-                    <div className="container px-4 md:px-6 mx-auto">
-                        <div className="text-center mb-16">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                                Trusted by Revenue Leaders
-                            </h2>
-                            <p className="text-xl text-slate-400">
-                                See what our customers are saying
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {/* Testimonial 1 */}
-                            <div className="flex flex-col p-8 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                                        SK
+                            {/* Card 4: Speed */}
+                            <div className="md:col-span-2 rounded-3xl bg-slate-900 border border-white/10 p-8 relative overflow-hidden group hover:border-orange-500/30 transition-colors">
+                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-orange-500/10 blur-[80px]" />
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="p-3 bg-orange-500/20 w-fit rounded-xl text-orange-400 mb-4">
+                                        <Clock className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-white">Sarah Kim</div>
-                                        <div className="text-sm text-slate-400">VP of Sales, FinTech Startup</div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">47 Second Setup</h3>
+                                        <p className="text-slate-400 max-w-md">Why spend weeks onboarding? Upload your docs, pick a strategy, and launch. Our agents handle the complexity.</p>
                                     </div>
-                                </div>
-                                <p className="text-slate-300 leading-relaxed mb-4">
-                                    "We increased our qualified pipeline by <span className="font-bold text-blue-400">40% in the first quarter</span>. The AI agents handle prospecting while our team focuses on closing."
-                                </p>
-                                <div className="flex gap-1 mt-auto">
-                                    {[...Array(5)].map((_, i) => (
-                                        <CheckCircle2 key={i} className="h-4 w-4 text-blue-400" />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Testimonial 2 */}
-                            <div className="flex flex-col p-8 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-                                        MP
-                                    </div>
-                                    <div>
-                                        <div className="font-semibold text-white">Marcus Patel</div>
-                                        <div className="text-sm text-slate-400">CRO, Enterprise SaaS</div>
-                                    </div>
-                                </div>
-                                <p className="text-slate-300 leading-relaxed mb-4">
-                                    "From PRD to first meeting in <span className="font-bold text-emerald-400">less than 48 hours</span>. This isn't incremental improvement—it's a paradigm shift."
-                                </p>
-                                <div className="flex gap-1 mt-auto">
-                                    {[...Array(5)].map((_, i) => (
-                                        <CheckCircle2 key={i} className="h-4 w-4 text-emerald-400" />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Testimonial 3 */}
-                            <div className="flex flex-col p-8 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                                        AL
-                                    </div>
-                                    <div>
-                                        <div className="font-semibold text-white">Amelia Lee</div>
-                                        <div className="text-sm text-slate-400">Head of Growth, ClimateTech</div>
-                                    </div>
-                                </div>
-                                <p className="text-slate-300 leading-relaxed mb-4">
-                                    "Finally, a tool that understands our complex ESG buyer personas. <span className="font-bold text-purple-400">Lead quality went from 23% to 71%</span> overnight."
-                                </p>
-                                <div className="flex gap-1 mt-auto">
-                                    {[...Array(5)].map((_, i) => (
-                                        <CheckCircle2 key={i} className="h-4 w-4 text-purple-400" />
-                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -296,85 +265,40 @@ export default function Home() {
                 </section>
 
                 {/* Final CTA */}
-                <section className="w-full py-20 md:py-32">
-                    <div className="container px-4 md:px-6 mx-auto">
-                        <div className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-br from-blue-950/50 via-slate-900 to-slate-950 p-12 md:p-16 text-center shadow-2xl">
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent" />
-
-                            <div className="relative z-10 max-w-3xl mx-auto space-y-8">
-                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
-                                    Ready to <span className="text-blue-400">10x Your Pipeline?</span>
-                                </h2>
-                                <p className="text-xl md:text-2xl text-slate-300 font-light">
-                                    Upload your PRD. Get a free strategic analysis. See how our AI agents find your ideal customers.
-                                </p>
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Link href="/dashboard">
-                                        <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white text-lg px-10 py-7 shadow-2xl shadow-blue-900/50 group">
-                                            Start Free Strategy Analysis
-                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </Link>
-                                    <Link href="/contact">
-                                        <Button size="lg" variant="outline" className="border-slate-600 text-slate-200 hover:bg-slate-800 text-lg px-10 py-7">
-                                            Talk to Sales
-                                        </Button>
-                                    </Link>
-                                </div>
-                                <p className="text-sm text-slate-500">
-                                    No credit card required • Free 14-day trial • Cancel anytime
-                                </p>
-                            </div>
+                <section className="py-24 bg-gradient-to-b from-slate-950 to-blue-950/20 border-t border-white/5">
+                    <div className="container px-4 mx-auto text-center">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-8">Ready to reclaim 80% of your day?</h2>
+                        <div className="flex flex-col sm:flex-row gap-5 justify-center">
+                            <Link href="/dashboard">
+                                <Button size="lg" className="h-14 px-10 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg shadow-xl shadow-blue-500/20">
+                                    Get Started Free
+                                </Button>
+                            </Link>
+                            <Link href="/contact">
+                                <Button size="lg" variant="outline" className="h-14 px-10 border-slate-700 hover:bg-slate-800 text-slate-300 text-lg">
+                                    Talk to Sales
+                                </Button>
+                            </Link>
                         </div>
+                        <p className="mt-6 text-sm text-slate-500">Includes 50 free leads • No credit card required</p>
                     </div>
                 </section>
             </main>
 
-            {/* Footer */}
-            <footer className="w-full py-12 border-t border-slate-800/50 bg-slate-900/30">
-                <div className="container px-4 md:px-6 mx-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <h3 className="font-semibold text-white mb-4">Product</h3>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><Link href="/features" className="hover:text-white transition-colors">Features</Link></li>
-                                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                                <li><Link href="/use-cases" className="hover:text-white transition-colors">Use Cases</Link></li>
-                            </ul>
+            <footer className="py-12 bg-slate-950 border-t border-white/5 text-slate-500 text-sm">
+                <div className="container px-4 mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded bg-slate-800 flex items-center justify-center">
+                            <Zap className="h-3 w-3 text-slate-400" />
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-white mb-4">Company</h3>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
-                                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-white mb-4">Resources</h3>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><Link href="/resources" className="hover:text-white transition-colors">Whitepapers</Link></li>
-                                <li><Link href="/blog" className="hover:text-white transition-colors">Case Studies</Link></li>
-                                <li><Link href="/resources#calculator" className="hover:text-white transition-colors">ROI Calculator</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-white mb-4">Legal</h3>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
-                                <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
-                                <li><Link href="/security" className="hover:text-white transition-colors">Security</Link></li>
-                            </ul>
-                        </div>
+                        <span className="font-semibold text-slate-300">DataFrontier</span>
                     </div>
-                    <div className="pt-8 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-sm text-slate-500">© 2026 DataFrontier Inc. All rights reserved.</p>
-                        <div className="flex gap-6">
-                            <Link href="#" className="text-slate-500 hover:text-white transition-colors">Twitter</Link>
-                            <Link href="#" className="text-slate-500 hover:text-white transition-colors">LinkedIn</Link>
-                            <Link href="#" className="text-slate-500 hover:text-white transition-colors">GitHub</Link>
-                        </div>
+                    <div className="flex gap-8">
+                        <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                        <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+                        <Link href="/security" className="hover:text-white transition-colors">Security</Link>
                     </div>
+                    <p>© 2026 DataFrontier Inc.</p>
                 </div>
             </footer>
         </div>
