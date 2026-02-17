@@ -9,9 +9,15 @@ import { InfraToggle } from "@/components/pricing/InfraToggle";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, CheckCircle2, Zap, ArrowRight, XCircle, Brain, FileText, Send, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function PricingPage() {
     const [showInfra, setShowInfra] = useState(false);
+    const [monthlyLeads, setMonthlyLeads] = useState(500);
+
+    const recommendedPlan =
+        monthlyLeads <= 1000 ? 'starter' :
+            monthlyLeads <= 5000 ? 'growth' : 'enterprise';
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 font-sans selection:bg-blue-500/30">
@@ -44,7 +50,19 @@ export default function PricingPage() {
                 <section className="py-12 px-4">
                     <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-8 items-start">
                         {/* Starter */}
-                        <div className="relative p-8 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-sm hover:border-white/20 transition-colors">
+                        <div
+                            className={cn(
+                                "relative p-8 rounded-3xl border bg-slate-900/40 backdrop-blur-sm transition-all duration-300",
+                                recommendedPlan === 'starter'
+                                    ? "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.2)] bg-slate-900/60"
+                                    : "border-white/10 hover:border-white/20"
+                            )}
+                        >
+                            {recommendedPlan === 'starter' && (
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                                    BEST FIT FOR YOUR SCALE
+                                </div>
+                            )}
                             <h3 className="text-xl font-bold text-white">Starter</h3>
                             <p className="text-sm text-slate-400 mt-2 h-10">Perfect for validating the agentic workflow.</p>
                             <div className="my-8">
@@ -55,18 +73,32 @@ export default function PricingPage() {
                                 Deploy Your First Agent
                             </Button>
                             <ul className="space-y-4">
-                                <FeatureItem text="100 Verified Leads/mo" />
+                                <FeatureItem text="100 Verified Leads/mo" highlight={recommendedPlan === 'starter'} />
                                 <FeatureItem text="Basic Email Drafting Agent" />
                                 <FeatureItem text="1 User Seat" />
                                 <FeatureItem text="Standard Support" />
                             </ul>
                         </div>
 
-                        {/* Growth - Glowing */}
-                        <div className="relative p-8 rounded-3xl bg-slate-900 border border-blue-500/50 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] transform lg:-translate-y-4 z-10">
-                            <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-2xl shadow-lg">
-                                MOST POPULAR
-                            </div>
+                        {/* Growth */}
+                        <div
+                            className={cn(
+                                "relative p-8 rounded-3xl border transition-all duration-300 transform lg:-translate-y-4 z-10",
+                                recommendedPlan === 'growth'
+                                    ? "bg-slate-900 border-blue-500 shadow-[0_0_50px_-12px_rgba(59,130,246,0.4)]"
+                                    : "bg-slate-900/40 border-white/10 hover:border-white/20"
+                            )}
+                        >
+                            {recommendedPlan === 'growth' ? (
+                                <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-2xl shadow-lg">
+                                    BEST FIT FOR YOUR SCALE
+                                </div>
+                            ) : (
+                                <div className="absolute top-0 right-0 bg-slate-800 text-slate-400 text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-2xl">
+                                    MOST POPULAR
+                                </div>
+                            )}
+
                             <div className="flex items-center gap-2 mb-2">
                                 <h3 className="text-xl font-bold text-white">Growth</h3>
                                 <Zap className="h-5 w-5 text-blue-400 fill-blue-400 animate-pulse" />
@@ -89,7 +121,19 @@ export default function PricingPage() {
                         </div>
 
                         {/* Enterprise */}
-                        <div className="relative p-8 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-sm hover:border-white/20 transition-colors">
+                        <div
+                            className={cn(
+                                "relative p-8 rounded-3xl border bg-slate-900/40 backdrop-blur-sm transition-all duration-300",
+                                recommendedPlan === 'enterprise'
+                                    ? "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.2)] bg-slate-900/60"
+                                    : "border-white/10 hover:border-white/20"
+                            )}
+                        >
+                            {recommendedPlan === 'enterprise' && (
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                                    BEST FIT FOR YOUR SCALE
+                                </div>
+                            )}
                             <h3 className="text-xl font-bold text-white">Enterprise</h3>
                             <p className="text-sm text-slate-400 mt-2 h-10">Custom models and dedicated architecture.</p>
                             <div className="my-8">
@@ -99,7 +143,7 @@ export default function PricingPage() {
                                 Schedule Architecture Call
                             </Button>
                             <ul className="space-y-4">
-                                <FeatureItem text="Unlimited Agents & Leads" />
+                                <FeatureItem text="Unlimited Agents & Leads" highlight={recommendedPlan === 'enterprise'} />
                                 <FeatureItem text="Custom PRD Parsing Models" />
                                 <FeatureItem text="Private Cloud / On-Prem" />
                                 <FeatureItem text="SSO & Audit Logs" />
@@ -111,52 +155,15 @@ export default function PricingPage() {
 
                 {/* ROI Section + Scenario */}
                 <section className="py-24 bg-slate-950/50 border-y border-white/5">
-                    <div className="container px-4 mx-auto grid lg:grid-cols-2 gap-16 items-center">
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-3xl font-bold text-white mb-4">The Cost of Inaction</h2>
-                                <p className="text-slate-400 text-lg">
-                                    Manual prospecting isn't just slow—it's expensive. See how MissionControl compares to traditional SDR scaling.
-                                </p>
-                            </div>
-                            <ROICalculator />
+                    <div className="container px-4 mx-auto max-w-6xl">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold text-white mb-4">The Cost of Inaction</h2>
+                            <p className="text-slate-400 text-lg">
+                                Manual prospecting isn't just slow—it's expensive. See how MissionControl compares to traditional SDR scaling.
+                            </p>
                         </div>
 
-                        <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 space-y-8">
-                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-4">Scaling a Campaign to 1,000 Leads</h3>
-
-                            {/* Manual */}
-                            <div className="space-y-4 opacity-50 hover:opacity-100 transition-opacity">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-red-500/10 rounded-lg text-red-400"><XCircle className="h-5 w-5" /></div>
-                                        <span className="font-medium text-slate-300">Manual Approach</span>
-                                    </div>
-                                    <span className="text-red-400 font-mono">$5,000+ Cost</span>
-                                </div>
-                                <div className="pl-12 space-y-2 text-sm text-slate-500">
-                                    <p>• 40 hours LinkedIn research</p>
-                                    <p>• 15 hours drafting emails</p>
-                                    <p>• High burnout risk</p>
-                                </div>
-                            </div>
-
-                            {/* MissionControl */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400"><CheckCircle2 className="h-5 w-5" /></div>
-                                        <span className="font-bold text-white">MissionControl</span>
-                                    </div>
-                                    <span className="text-emerald-400 font-bold font-mono">$149 Total</span>
-                                </div>
-                                <div className="pl-12 space-y-2 text-sm text-slate-400">
-                                    <p className="flex items-center gap-2"><Zap className="h-3 w-3 text-emerald-500" /> 3 minutes PRD analysis</p>
-                                    <p className="flex items-center gap-2"><Zap className="h-3 w-3 text-emerald-500" /> 1 click to deploy</p>
-                                    <p className="flex items-center gap-2"><Zap className="h-3 w-3 text-emerald-500" /> Auto-enriched & verified</p>
-                                </div>
-                            </div>
-                        </div>
+                        <ROICalculator onLeadsChange={setMonthlyLeads} />
                     </div>
                 </section>
 
