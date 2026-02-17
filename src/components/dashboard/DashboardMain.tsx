@@ -119,7 +119,7 @@ export default function DashboardMain() {
     return (
 
 
-        <Tabs value={activeTab} className="flex-1 flex flex-col p-8 overflow-hidden">
+        <Tabs value={activeTab} className="flex-1 flex flex-col p-8">
             <div className="flex justify-between items-center mb-6 shrink-0">
                 <div className="space-y-1">
                     <h2 className="text-3xl font-bold tracking-tight text-white mb-1">
@@ -145,8 +145,8 @@ export default function DashboardMain() {
                 </div>
             </div>
 
-            {/* Strategy Tab */}
-            <TabsContent value="strategy" className="flex-1 h-full p-1">
+            {/* Strategy Tab - Allow natural height */}
+            <TabsContent value="strategy" className="flex-1 p-1 outline-none">
                 <StrategyCanvas />
             </TabsContent>
 

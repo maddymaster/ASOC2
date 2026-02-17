@@ -480,7 +480,7 @@ export function StrategyCanvas() {
     return (
         <div className="grid grid-cols-12 gap-8 h-full">
             {/* History Sidebar - Glassmorphism */}
-            <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r border-slate-800/60 pr-6 flex flex-col gap-6">
+            <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r border-slate-800/60 pr-6 flex flex-col gap-6 sticky top-0 h-[calc(100vh-4rem)]">
                 <div className="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
                     <Clock className="h-4 w-4 text-blue-500" /> History
                 </div>
@@ -518,7 +518,7 @@ export function StrategyCanvas() {
             </div>
 
             {/* Main Content */}
-            <div className="col-span-12 md:col-span-9 lg:col-span-10 flex flex-col space-y-8 h-full">
+            <div className="col-span-12 md:col-span-9 lg:col-span-10 flex flex-col space-y-8 pb-12">
                 {/* Header Card */}
                 {activeAnalysis && (
                     <Card className="bg-slate-900/40 backdrop-blur-md border border-slate-700/50 shadow-2xl">
@@ -547,123 +547,122 @@ export function StrategyCanvas() {
                     </Card>
                 )}
 
-                <ScrollArea className="flex-1 -mx-6 px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-                        {activeAnalysis?.sectors.map((sector, idx) => (
-                            <Card key={idx} className="flex flex-col h-full group hover:scale-[1.01] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/20">
-                                <CardHeader className="pb-4">
-                                    <div className="flex justify-between items-start mb-3 gap-2">
-                                        <Badge variant="outline" className="text-blue-400 border-blue-500/20 bg-blue-500/5 uppercase tracking-widest text-[10px] font-bold px-2 py-0.5">
-                                            Sector {idx + 1}
-                                        </Badge>
-                                        {getStatusBadge(getAgentStatusForSector(idx))}
-                                    </div>
-                                    <CardTitle className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
-                                        {sector.sector}
-                                    </CardTitle>
-                                </CardHeader>
+                {/* Grid Content - No ScrollArea, just natural grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {activeAnalysis?.sectors.map((sector, idx) => (
+                        <Card key={idx} className="flex flex-col h-full group hover:scale-[1.01] transition-all duration-300 bg-slate-900/60 backdrop-blur-sm border-slate-800 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/20">
+                            <CardHeader className="pb-4">
+                                <div className="flex justify-between items-start mb-3 gap-2">
+                                    <Badge variant="outline" className="text-blue-400 border-blue-500/20 bg-blue-500/5 uppercase tracking-widest text-[10px] font-bold px-2 py-0.5">
+                                        Sector {idx + 1}
+                                    </Badge>
+                                    {getStatusBadge(getAgentStatusForSector(idx))}
+                                </div>
+                                <CardTitle className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
+                                    {sector.sector}
+                                </CardTitle>
+                            </CardHeader>
 
-                                <CardContent className="space-y-6 flex-1 flex flex-col">
-                                    {/* Glass Separator */}
-                                    <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+                            <CardContent className="space-y-6 flex-1 flex flex-col">
+                                {/* Glass Separator */}
+                                <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
-                                    {/* AI Reasoning Dropdown */}
-                                    <Collapsible
-                                        open={expandedSectors.has(idx)}
-                                        onOpenChange={() => toggleSectorExpansion(idx)}
-                                    >
-                                        <CollapsibleTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="w-full justify-between h-9 px-3 text-slate-300 hover:text-blue-300 hover:bg-blue-500/5"
-                                            >
-                                                <span className="flex items-center gap-2 text-xs font-semibold">
-                                                    <Lightbulb className="h-3 w-3 text-amber-400" />
-                                                    AI Reasoning
-                                                </span>
-                                                {expandedSectors.has(idx) ?
-                                                    <ChevronUp className="h-4 w-4" /> :
-                                                    <ChevronDown className="h-4 w-4" />
-                                                }
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                        <CollapsibleContent className="mt-3">
-                                            <div className="bg-slate-950/50 rounded-lg p-4 border border-slate-800/50">
-                                                <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                                                    {sector.rationale}
-                                                </p>
-                                                <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider">
-                                                    <div className="h-1 w-1 rounded-full bg-green-500"></div>
-                                                    Confidence: High
-                                                </div>
+                                {/* AI Reasoning Dropdown */}
+                                <Collapsible
+                                    open={expandedSectors.has(idx)}
+                                    onOpenChange={() => toggleSectorExpansion(idx)}
+                                >
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-between h-9 px-3 text-slate-300 hover:text-blue-300 hover:bg-blue-500/5"
+                                        >
+                                            <span className="flex items-center gap-2 text-xs font-semibold">
+                                                <Lightbulb className="h-3 w-3 text-amber-400" />
+                                                AI Reasoning
+                                            </span>
+                                            {expandedSectors.has(idx) ?
+                                                <ChevronUp className="h-4 w-4" /> :
+                                                <ChevronDown className="h-4 w-4" />
+                                            }
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="mt-3">
+                                        <div className="bg-slate-950/50 rounded-lg p-4 border border-slate-800/50">
+                                            <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                                                {sector.rationale}
+                                            </p>
+                                            <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider">
+                                                <div className="h-1 w-1 rounded-full bg-green-500"></div>
+                                                Confidence: High
                                             </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-
-                                    <section>
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <Target className="h-3 w-3 text-blue-400" /> Target Roles
-                                        </h4>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {sector.targetRoles.map((role, i) => (
-                                                <Badge key={i} variant="secondary" className="text-xs bg-slate-800/60 text-slate-200 border-slate-700">
-                                                    {role}
-                                                </Badge>
-                                            ))}
                                         </div>
-                                    </section>
+                                    </CollapsibleContent>
+                                </Collapsible>
 
-                                    <section>
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Value Proposition</h4>
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                            {sector.valueProposition}
-                                        </p>
-                                    </section>
+                                <section>
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <Target className="h-3 w-3 text-blue-400" /> Target Roles
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {sector.targetRoles.map((role, i) => (
+                                            <Badge key={i} variant="secondary" className="text-xs bg-slate-800/60 text-slate-200 border-slate-700">
+                                                {role}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </section>
 
-                                    <section className="flex-1">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <AlertTriangle className="h-3 w-3 text-orange-400" /> Pain Points
-                                        </h4>
-                                        <ul className="space-y-2 text-xs text-slate-300">
-                                            {sector.painPoints.map((pain, i) => (
-                                                <li key={i} className="flex items-start gap-2">
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0"></span>
-                                                    <span className="leading-relaxed">{pain}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
+                                <section>
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Value Proposition</h4>
+                                    <p className="text-xs text-slate-300 leading-relaxed">
+                                        {sector.valueProposition}
+                                    </p>
+                                </section>
 
-                                    <Button
-                                        onClick={() => handleDeployAgent(sector, idx)}
-                                        disabled={getAgentStatusForSector(idx) === 'analyzing'}
-                                        className="w-full mt-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {getAgentStatusForSector(idx) === 'analyzing' ? (
-                                            <>
-                                                <Activity className="h-4 w-4 mr-2 animate-spin" />
-                                                Deploying Agent...
-                                            </>
-                                        ) : getAgentStatusForSector(idx) === 'ready' ? (
-                                            <>
-                                                <Sparkles className="h-4 w-4 mr-2" />
-                                                Agent Ready - View Leads
-                                                <ArrowRight className="h-4 w-4 ml-2" />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Cpu className="h-4 w-4 mr-2" />
-                                                Deploy Agent
-                                                <ArrowRight className="h-4 w-4 ml-2" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </ScrollArea>
+                                <section className="flex-1">
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <AlertTriangle className="h-3 w-3 text-orange-400" /> Pain Points
+                                    </h4>
+                                    <ul className="space-y-2 text-xs text-slate-300">
+                                        {sector.painPoints.map((pain, i) => (
+                                            <li key={i} className="flex items-start gap-2">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0"></span>
+                                                <span className="leading-relaxed">{pain}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+
+                                <Button
+                                    onClick={() => handleDeployAgent(sector, idx)}
+                                    disabled={getAgentStatusForSector(idx) === 'analyzing'}
+                                    className="w-full mt-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {getAgentStatusForSector(idx) === 'analyzing' ? (
+                                        <>
+                                            <Activity className="h-4 w-4 mr-2 animate-spin" />
+                                            Deploying Agent...
+                                        </>
+                                    ) : getAgentStatusForSector(idx) === 'ready' ? (
+                                        <>
+                                            <Sparkles className="h-4 w-4 mr-2" />
+                                            Agent Ready - View Leads
+                                            <ArrowRight className="h-4 w-4 ml-2" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Cpu className="h-4 w-4 mr-2" />
+                                            Deploy Agent
+                                            <ArrowRight className="h-4 w-4 ml-2" />
+                                        </>
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
         </div>
     );
