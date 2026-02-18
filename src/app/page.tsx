@@ -1,3 +1,4 @@
+import { Header } from "@/components/layout/Header";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, TrendingUp, Clock, Target, Shield, Brain, Globe, Lock, Server } from "lucide-react";
@@ -27,35 +28,9 @@ export default function Home() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            {/* Sticky Header - Glassmorphism */}
-            <header className="fixed w-full top-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link className="flex items-center gap-2 font-bold text-xl tracking-tight" href="/">
-                        <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                            <Zap className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">DataFrontier</span>
-                    </Link>
+            {/* Standardized Global Header */}
+            <Header />
 
-                    <nav className="hidden md:flex gap-8 items-center">
-                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/use-cases">Use Cases</Link>
-                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/features">Features</Link>
-                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/pricing">Pricing</Link>
-                        <Link className="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="/resources">Resources</Link>
-                    </nav>
-
-                    <div className="flex items-center gap-4">
-                        <Link href="/login" className="hidden sm:block">
-                            <Button size="sm" variant="ghost" className="text-slate-300 hover:text-white hover:bg-white/5">Login</Button>
-                        </Link>
-                        <Link href="/contact">
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 transition-all">
-                                Book Demo
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </header>
 
             <main className="flex-1 pt-16">
                 {/* Hero Section */}
@@ -301,6 +276,6 @@ export default function Home() {
                     <p>© 2026 DataFrontier Inc.</p>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 }
