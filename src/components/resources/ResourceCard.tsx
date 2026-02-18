@@ -34,8 +34,8 @@ export function ResourceCard({ resource, isVerified }: ResourceCardProps) {
         <Button
             onClick={isVerified ? handleDownload : undefined}
             className={`w-full group ${isVerified
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
                 }`}
         >
             {isVerified ? (
@@ -78,7 +78,7 @@ export function ResourceCard({ resource, isVerified }: ResourceCardProps) {
                     {resource.title}
                 </h3>
 
-                <p className="text-slate-400 text-sm line-clamp-3 mb-2">
+                <p className="text-slate-300 text-sm line-clamp-3 mb-2">
                     {resource.description}
                 </p>
 

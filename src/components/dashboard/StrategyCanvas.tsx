@@ -290,7 +290,7 @@ export function StrategyCanvas() {
                 );
             default:
                 return (
-                    <Badge variant="outline" className="text-slate-400 border-slate-700 gap-1.5">
+                    <Badge variant="outline" className="text-slate-300 border-slate-700 gap-1.5">
                         <Cpu className="h-3 w-3" />
                         Agent Idle
                     </Badge>
@@ -323,13 +323,13 @@ export function StrategyCanvas() {
                                 <Upload className="h-10 w-10 text-blue-400" />
                             </div>
                             <div className="absolute -bottom-2 -right-2 bg-slate-900 rounded-full p-1.5 border border-slate-700">
-                                <FileText className="h-4 w-4 text-slate-400" />
+                                <FileText className="h-4 w-4 text-slate-300" />
                             </div>
                         </div>
 
                         <div className="space-y-3 max-w-md">
                             <h3 className="text-2xl font-bold text-white tracking-tight">Upload Product Context</h3>
-                            <p className="text-slate-400 leading-relaxed">
+                            <p className="text-slate-300 leading-relaxed">
                                 Drag & drop your PRD, Product Spec, or Marketing One-Pager (PDF/TXT) to initialize the strategy agent.
                             </p>
                             <p className="text-xs text-blue-400/70 flex items-center gap-1.5 justify-center">
@@ -379,7 +379,7 @@ export function StrategyCanvas() {
                         </div>
                         <div className="space-y-2">
                             <h3 className="text-xl font-semibold text-white">{step}</h3>
-                            <p className="text-sm text-slate-400 max-w-xs mx-auto animate-pulse">
+                            <p className="text-sm text-slate-300 max-w-xs mx-auto animate-pulse">
                                 {subtext}
                             </p>
                         </div>
@@ -420,7 +420,7 @@ export function StrategyCanvas() {
                             </div>
                             <div className="flex items-center gap-3 p-3 bg-slate-900/30 rounded-lg border border-slate-700/30 opacity-50">
                                 <Clock className="h-5 w-5 text-slate-500" />
-                                <span className="text-sm text-slate-400">Finalizing recommendations</span>
+                                <span className="text-sm text-slate-300">Finalizing recommendations</span>
                             </div>
                         </div>
 
@@ -429,7 +429,7 @@ export function StrategyCanvas() {
                             <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" style={{ width: '65%' }}></div>
                             </div>
-                            <p className="text-xs text-slate-400 mt-2">This may take up to 90 seconds for complex files</p>
+                            <p className="text-xs text-slate-300 mt-2">This may take up to 90 seconds for complex files</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -481,7 +481,7 @@ export function StrategyCanvas() {
         <div className="grid grid-cols-12 gap-8 h-full">
             {/* History Sidebar - Glassmorphism */}
             <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r border-slate-800/60 pr-6 flex flex-col gap-6 sticky top-0 h-[calc(100vh-4rem)]">
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-300 uppercase tracking-wider mb-2">
                     <Clock className="h-4 w-4 text-blue-500" /> History
                 </div>
                 <ScrollArea className="flex-1 -mr-4 pr-4">
@@ -494,7 +494,7 @@ export function StrategyCanvas() {
                                     "w-full text-left p-4 rounded-lg border transition-all duration-200 group relative overflow-hidden",
                                     activeAnalysis?.id === item.id
                                         ? "bg-blue-500/10 border-blue-500/30 text-blue-100"
-                                        : "border-transparent hover:bg-slate-800/50 hover:border-slate-700 text-slate-400 hover:text-slate-200"
+                                        : "border-transparent hover:bg-slate-800/50 hover:border-slate-700 text-slate-300 hover:text-slate-200"
                                 )}
                             >
                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 transition-opacity duration-200"
@@ -511,7 +511,7 @@ export function StrategyCanvas() {
                 </ScrollArea>
                 <div className="mt-auto pt-4 border-t border-slate-800/60">
                     <Button variant="outline" size="sm" onClick={resetCombinedState}
-                        className="w-full gap-2 border-dashed border-red-500/30 hover:border-red-500/50 text-slate-400 hover:text-red-300 hover:bg-red-950/10 transition-colors">
+                        className="w-full gap-2 border-dashed border-red-500/30 hover:border-red-500/50 text-slate-300 hover:text-red-300 hover:bg-red-950/10 transition-colors">
                         <Plus className="h-4 w-4" /> Start New Analysis
                     </Button>
                 </div>
@@ -535,7 +535,7 @@ export function StrategyCanvas() {
                                 </CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white" onClick={resetCombinedState}>
+                                <Button size="sm" variant="ghost" className="text-slate-300 hover:text-white" onClick={resetCombinedState}>
                                     <RefreshCw className="h-4 w-4 mr-2" /> Reset
                                 </Button>
                                 <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/20 gap-2">

@@ -72,7 +72,7 @@ export function Sidebar() {
                                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                                 active
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                                    : "text-slate-300 hover:text-slate-200 hover:bg-slate-900"
                             )}
                         >
                             <Icon className={cn("h-4 w-4", active ? "text-white" : "text-slate-500")} />
@@ -85,12 +85,12 @@ export function Sidebar() {
             {/* Footer Actions */}
             <div className="p-4 border-t border-slate-800 space-y-2">
                 <Link href="/dashboard/admin">
-                    <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-900">
+                    <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-900">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin
                     </Button>
                 </Link>
-                <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-900">
+                <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-900">
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                 </Button>

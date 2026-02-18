@@ -42,31 +42,31 @@ export function Header() {
 
                 <nav className="hidden md:flex gap-8 items-center">
                     <Link
-                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/use-cases") ? "text-white" : "text-slate-400")}
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/use-cases") ? "text-white" : "text-slate-300")}
                         href="/use-cases"
                     >
                         Use Cases
                     </Link>
                     <Link
-                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/features") ? "text-white" : "text-slate-400")}
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/features") ? "text-white" : "text-slate-300")}
                         href="/features"
                     >
                         Features
                     </Link>
                     <Link
-                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/pricing") ? "text-white" : "text-slate-400")}
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/pricing") ? "text-white" : "text-slate-300")}
                         href="/pricing"
                     >
                         Pricing
                     </Link>
                     <Link
-                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/resources") ? "text-white" : "text-slate-400")}
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/resources") ? "text-white" : "text-slate-300")}
                         href="/resources"
                     >
                         Resources
                     </Link>
                     <Link
-                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/blog") ? "text-white" : "text-slate-400")}
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/blog") ? "text-white" : "text-slate-300")}
                         href="/blog"
                     >
                         Blog

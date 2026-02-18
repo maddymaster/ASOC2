@@ -259,7 +259,7 @@ export function LeadGenTab() {
         if (score >= 80) return "text-green-400 border-green-500/30 bg-green-500/10";
         if (score >= 60) return "text-blue-400 border-blue-500/30 bg-blue-500/10";
         if (score >= 40) return "text-amber-400 border-amber-500/30 bg-amber-500/10";
-        return "text-slate-400 border-slate-500/30 bg-slate-500/10";
+        return "text-slate-300 border-slate-500/30 bg-slate-500/10";
     };
 
     const getScoreLabel = (score: number) => {
@@ -280,7 +280,7 @@ export function LeadGenTab() {
                         </div>
                         <div className="space-y-3">
                             <h3 className="text-xl font-bold text-white tracking-tight">No Strategy Selected</h3>
-                            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+                            <p className="text-sm text-slate-300 max-w-md leading-relaxed">
                                 Visit the Strategy tab to analyze your PRD and deploy an AI agent to fetch targeted leads.
                             </p>
                         </div>
@@ -297,7 +297,7 @@ export function LeadGenTab() {
                 <Card className="bg-slate-900/40 backdrop-blur-md border border-slate-700/50">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardDescription className="text-xs text-slate-400 uppercase tracking-wider">Total Leads</CardDescription>
+                            <CardDescription className="text-xs text-slate-300 uppercase tracking-wider">Total Leads</CardDescription>
                             <UsersIcon className="h-4 w-4 text-blue-400" />
                         </div>
                     </CardHeader>
@@ -310,7 +310,7 @@ export function LeadGenTab() {
                 <Card className="bg-slate-900/40 backdrop-blur-md border border-slate-700/50">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardDescription className="text-xs text-slate-400 uppercase tracking-wider">Qualified</CardDescription>
+                            <CardDescription className="text-xs text-slate-300 uppercase tracking-wider">Qualified</CardDescription>
                             <TrendingUp className="h-4 w-4 text-green-400" />
                         </div>
                     </CardHeader>
@@ -325,7 +325,7 @@ export function LeadGenTab() {
                 <Card className="bg-slate-900/40 backdrop-blur-md border border-slate-700/50">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardDescription className="text-xs text-slate-400 uppercase tracking-wider">Avg. Score</CardDescription>
+                            <CardDescription className="text-xs text-slate-300 uppercase tracking-wider">Avg. Score</CardDescription>
                             <Sparkles className="h-4 w-4 text-amber-400" />
                         </div>
                     </CardHeader>
@@ -344,7 +344,7 @@ export function LeadGenTab() {
             <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-1">
                     <h3 className="text-lg font-semibold text-white">Recent Leads</h3>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-slate-300">
                         {strategy.industry} • {strategy.targetRole}
                     </p>
                 </div>
@@ -414,7 +414,7 @@ export function LeadGenTab() {
                         ) : leads.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 text-center">
                                 <UsersIcon className="h-12 w-12 text-slate-600 mb-4" />
-                                <p className="text-slate-400">No leads found. Click "Refresh Leads" to fetch from Apollo.</p>
+                                <p className="text-slate-300">No leads found. Click "Refresh Leads" to fetch from Apollo.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -433,7 +433,7 @@ export function LeadGenTab() {
                                                         <CardTitle className="text-base font-semibold text-white group-hover:text-blue-200 transition-colors line-clamp-1">
                                                             {lead.name}
                                                         </CardTitle>
-                                                        <CardDescription className="text-xs text-slate-400 mt-1 line-clamp-1">
+                                                        <CardDescription className="text-xs text-slate-300 mt-1 line-clamp-1">
                                                             {(lead as any).role || 'Contact'}
                                                         </CardDescription>
                                                     </div>
