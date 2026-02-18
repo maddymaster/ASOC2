@@ -65,6 +65,13 @@ export function Header() {
                     >
                         Resources
                     </Link>
+                    <Link
+                        className={cn("text-sm font-medium transition-colors hover:text-white", isActive("/blog") ? "text-white" : "text-slate-400")}
+                        href="/blog"
+                    >
+                        Blog
+                    </Link>
+
                     {/* Added Team/Careers as secondary/hidden or just accessible via footer, 
                         or we can add them here if space permits. 
                         Request said "Fix navigation drift", implying matching the Landing Page.

@@ -64,7 +64,14 @@ export default function LoginPage() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+                <div className="absolute top-8 right-8">
+                    <Link href="/">
+                        <Button variant="ghost" className="text-slate-400 hover:text-white">
+                            Back to Home
+                        </Button>
+                    </Link>
+                </div>
                 <div className="max-w-[350px] w-full space-y-8">
                     <div className="space-y-2 text-center">
                         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
