@@ -220,7 +220,7 @@ export function LeadGenTab() {
     const handleGenerateDraft = async (lead: any) => {
         toast.promise(
             async () => {
-                const response = await fetch('/api/email/generate', {
+                const response = await fetch('/api/assistant/draft-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

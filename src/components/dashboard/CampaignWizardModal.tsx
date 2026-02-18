@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export function CampaignWizardModal() {
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<"upload" | "analyzing" | "chat">("upload");
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<File[]>([]);
     const [analysisProgress, setAnalysisProgress] = useState(0);
     const [chatInput, setChatInput] = useState("");
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
@@ -39,13 +39,17 @@ export function CampaignWizardModal() {
     } = useMissionControl();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
         }
     };
 
+    const removeFile = (index: number) => {
+        setFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     const startAnalysis = async () => {
-        if (!file) return;
+        if (files.length === 0) return;
 
         setStep("analyzing");
         let progress = 0;
@@ -61,7 +65,7 @@ export function CampaignWizardModal() {
         try {
             // Create FormData to send file
             const formData = new FormData();
-            formData.append('file', file);
+            files.forEach(f => formData.append('files', f));
 
             // Call API
             const res = await fetch("/api/assistant/analyze-prd", {
@@ -79,7 +83,7 @@ export function CampaignWizardModal() {
                     ...data.analysis,
                     id: Math.random().toString(36).substr(2, 9),
                     timestamp: new Date().toISOString(),
-                    fileName: file.name
+                    fileName: files.map(f => f.name).join(', ')
                 };
 
                 setExpertAnalysis(analysisWithMeta);
@@ -90,7 +94,7 @@ export function CampaignWizardModal() {
                     ...prev,
                     {
                         role: 'assistant',
-                        content: `I've analyzed ${file.name}. \n\n${data.analysis.summary}\n\nI've identified ${data.analysis.sectors.length} key sectors. Check the "Strategy" tab for details!`
+                        content: `I've analyzed ${files.length} document(s). \n\n${data.analysis.summary}\n\nI've identified ${data.analysis.sectors.length} key sectors. Check the "Strategy" tab for details!`
                     }
                 ]);
 
@@ -107,7 +111,7 @@ export function CampaignWizardModal() {
             console.error("Analysis failed", error);
             clearInterval(interval);
             setStep("upload");
-            setFile(null); // Force re-upload to clear stale state
+            setFiles([]); // Force re-upload to clear stale state
         }
     };
 
@@ -163,7 +167,7 @@ export function CampaignWizardModal() {
                     onClick={() => {
                         resetStrategy();
                         setStep("upload");
-                        setFile(null);
+                        setFiles([]);
                         setAnalysisProgress(0);
                         // Reset local chat state to remove "ghost" conversations
                         setMessages([
@@ -179,13 +183,13 @@ export function CampaignWizardModal() {
             <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 border-0 bg-transparent gap-0 max-w-none w-full h-full pointer-events-none">
                 {/* Backdrop overlay - z-[9998] */}
                 <div
-                    className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm pointer-events-auto"
+                    className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-md pointer-events-auto"
                     onClick={() => setOpen(false)}
                     aria-hidden="true"
                 />
 
                 {/* Modal content - z-[9999] - Centered & Responsive */}
-                <div className="relative z-[9999] w-full max-w-4xl h-[85vh] max-h-[900px] min-h-[500px] bg-slate-900 rounded-xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200">
+                <div className="relative z-[9999] w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-900 rounded-xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700">
                         <DialogTitle>New Campaign Wizard</DialogTitle>
                     </DialogHeader>
@@ -208,28 +212,38 @@ export function CampaignWizardModal() {
                                 <Input
                                     id="file-upload"
                                     type="file"
+                                    multiple
                                     className="hidden"
                                     onChange={handleFileChange}
                                 />
 
-                                {!file ? (
+                                {files.length === 0 ? (
                                     <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
-                                        Select File
+                                        Select Files
                                     </Button>
                                 ) : (
-                                    <div className="space-y-4 w-full">
-                                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
-                                            <FileText className="h-5 w-5 text-purple-500" />
-                                            <div className="flex-1 text-left truncate font-medium text-sm">
-                                                {file.name}
-                                            </div>
-                                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFile(null)}>
-                                                <span className="sr-only">Remove</span>x
+                                    <div className="space-y-4 w-full px-10">
+                                        <div className="max-h-40 overflow-y-auto space-y-2">
+                                            {files.map((f, idx) => (
+                                                <div key={idx} className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
+                                                    <FileText className="h-5 w-5 text-purple-500" />
+                                                    <div className="flex-1 text-left truncate font-medium text-sm">
+                                                        {f.name}
+                                                    </div>
+                                                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => removeFile(idx)}>
+                                                        <span className="sr-only">Remove</span>x
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" className="flex-1" onClick={() => document.getElementById('file-upload')?.click()}>
+                                                Add More
+                                            </Button>
+                                            <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={startAnalysis}>
+                                                Analyze {files.length} Document{files.length > 1 ? 's' : ''}
                                             </Button>
                                         </div>
-                                        <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={startAnalysis}>
-                                            Analyze Document
-                                        </Button>
                                     </div>
                                 )}
                             </div>

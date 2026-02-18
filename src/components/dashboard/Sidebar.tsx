@@ -47,7 +47,7 @@ export function Sidebar() {
     };
 
     return (
-        <div className="w-64 h-full bg-slate-950 border-r border-slate-800 flex flex-col shrink-0">
+        <aside className="fixed left-0 top-0 h-screen w-64 z-[40] bg-slate-950 border-r border-slate-800 flex flex-col shrink-0">
             {/* Logo Area */}
             <div className="p-6 border-b border-slate-800">
                 <Link href="/dashboard" onClick={() => setActiveTab('strategy')} className="flex items-center gap-2">
@@ -108,6 +108,6 @@ export function Sidebar() {
                     Reset System
                 </Button>
             </div>
-        </div >
+        </aside>
     );
 }
