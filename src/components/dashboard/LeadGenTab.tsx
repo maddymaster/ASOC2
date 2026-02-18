@@ -215,6 +215,46 @@ export function LeadGenTab() {
         });
     };
 
+    const triggerOutboundCall = async (lead: any) => {
+        toast.info(`Calling ${lead.name}...`, {
+            description: "Initiating AI Voice Agent via Retell..."
+        });
+
+        try {
+            const res = await fetch('/api/calls/outbound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    leadId: lead.id,
+                    phone: (lead as any).phone_numbers?.[0]?.sanitized_number || lead.phone,
+                    name: lead.name,
+                    rationale: strategy?.rationale || "Strategic fit",
+                    painPoints: ["Manual process", "Inefficiency"] // Dynamic in full version
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success("Call Initiated", {
+                    description: `Agent is dialing ${lead.name} now.`
+                });
+                addActivityEvent({
+                    type: 'success',
+                    message: `Outbound call triggered to ${lead.name}`,
+                    details: 'Agent: Enterprise Security Bot'
+                });
+            } else {
+                toast.error("Call Failed", {
+                    description: data.error || "Could not connect to Retell."
+                });
+            }
+        } catch (error) {
+            console.error("Call trigger error:", error);
+            toast.error("Call Failed", { description: "Network error." });
+        }
+    };
+
     const getScoreColor = (score: number) => {
         if (score >= 80) return "text-green-400 border-green-500/30 bg-green-500/10";
         if (score >= 60) return "text-blue-400 border-blue-500/30 bg-blue-500/10";
@@ -446,7 +486,12 @@ export function LeadGenTab() {
                                                         Email
                                                     </Button>
                                                     {(lead as any).phone && (
-                                                        <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-green-500/10 hover:border-green-500/30">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-green-500/10 hover:border-green-500/30"
+                                                            onClick={() => triggerOutboundCall(lead)}
+                                                        >
                                                             <Phone className="h-3 w-3" />
                                                             Call
                                                         </Button>

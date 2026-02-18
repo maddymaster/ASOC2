@@ -37,7 +37,10 @@ export async function POST(request: Request) {
             from_number: process.env.RETELL_FROM_NUMBER || "+14155552671",
             to_number: phone,
             override_agent_id: agentId,
-            retell_llm_dynamic_variables: dynamicVariables
+            retell_llm_dynamic_variables: dynamicVariables,
+            metadata: {
+                lead_id: leadId
+            }
         });
 
         console.log("Retell Outbound Call Initiated:", callResponse.call_id);
