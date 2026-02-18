@@ -4,8 +4,9 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { ResourceCard, ResourceProps } from '@/components/resources/ResourceCard';
 import { toast } from "sonner";
-// standard imports
 import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 // Mock Data for Resources
 const RESOURCES: ResourceProps[] = [
@@ -22,6 +23,48 @@ const RESOURCES: ResourceProps[] = [
         description: 'Practical strategies for implementing autonomous revenue infrastructure today. Learn how to bridge the gap between AI hype and revenue reality.',
         thumbnailUrl: '/assets/thumbnails/execution-playbook.png',
         pdfUrl: '/assets/documents/Closing_the_Gap_Execution_Playbook.pdf',
+    },
+    {
+        id: 'seed-to-series-a',
+        title: 'Scaling from Seed to Series A: The Automated Outbound Playbook',
+        description: 'How to replace your first 5 sales hires with 1 engineer and an army of agents. A guide for technical founders.',
+        thumbnailUrl: '/assets/thumbnails/seed-series-a.png',
+        pdfUrl: '/assets/documents/Seed_to_Series_A_Playbook.pdf',
+    },
+    {
+        id: 'high-ticket-services',
+        title: 'High-Ticket Service Sales: Booking 50+ Meetings/Week',
+        description: 'For agencies and consultancies: How finding "Needle in a Haystack" clients becomes trivial with AI-driven signal detection.',
+        thumbnailUrl: '/assets/thumbnails/high-ticket-service.png',
+        pdfUrl: '/assets/documents/High_Ticket_Service_Sales.pdf',
+    },
+    {
+        id: 'dev-shop-growth',
+        title: 'The Dev Shop Growth Engine: Finding Enterprise Clients',
+        description: 'Stop relying on referrals. How top tier dev shops use agentic SDRs to penetrate the Fortune 500.',
+        thumbnailUrl: '/assets/thumbnails/dev-shop-growth.png',
+        pdfUrl: '/assets/documents/Dev_Shop_Growth_Engine.pdf',
+    },
+    {
+        id: 'clinical-trials',
+        title: 'Accelerating Clinical Trials: Patient Recruitment via Agents',
+        description: 'Case Study: How a violently complex sales cycle (healthcare providers) was shortened by 40% using empathetic AI voice agents.',
+        thumbnailUrl: '/assets/thumbnails/clinical-trials.png',
+        pdfUrl: '/assets/documents/Accelerating_Clinical_Trials.pdf',
+    },
+    {
+        id: 'fraud-detection-sales',
+        title: 'Selling Trust: Automating Enterprise Fraud Detection Sales',
+        description: 'Selling to CISOs is hard. See how hyper-personalized, research-backed outreach broke through the noise for a Series B Fintech.',
+        thumbnailUrl: '/assets/thumbnails/fraud-detection.png',
+        pdfUrl: '/assets/documents/Selling_Trust_Fintech.pdf',
+    },
+    {
+        id: 'logistics-saas',
+        title: 'Supply Chain Optimization: Breaking into Legacy Markets',
+        description: 'Case Study: Selling modern SaaS to old-school logistics companies. How voice agents handled phone-heavy industries at scale.',
+        thumbnailUrl: '/assets/thumbnails/logistics-saas.png',
+        pdfUrl: '/assets/documents/Supply_Chain_Optimization.pdf',
     }
 ];
 
@@ -46,14 +89,14 @@ function ResourcesContent() {
     }, [verifiedParam]);
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-100 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl opacity-30 animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-900/20 rounded-full blur-3xl opacity-30 animate-pulse delay-1000" />
-            </div>
+        <div className="min-h-screen bg-slate-950 text-white selection:bg-blue-500/30">
+            <Header />
 
-            <main className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+            <main className="pt-32 pb-24 container mx-auto px-6 relative z-10">
+                {/* Background Effects (Subtler Global Style) */}
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" />
+
                 {/* Header */}
                 <div className="text-center mb-20 space-y-6">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/50 border border-blue-800 text-blue-300 text-sm font-medium mb-4">
@@ -61,8 +104,8 @@ function ResourcesContent() {
                         <span>Generic Knowledge is Free. Execution is Gated.</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                        Mission Critical Intelligence
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white">
+                        Mission Critical <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Intelligence</span>
                     </h1>
 
                     <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
@@ -72,7 +115,7 @@ function ResourcesContent() {
                 </div>
 
                 {/* Resource Grid */}
-                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                     {RESOURCES.map((resource) => (
                         <ResourceCard
                             key={resource.id}
@@ -81,21 +124,9 @@ function ResourcesContent() {
                         />
                     ))}
                 </div>
-
-                {/* Social Proof / Footer Note */}
-                <div className="mt-24 text-center border-t border-slate-800 pt-12">
-                    <p className="text-slate-500 text-sm">
-                        TRUSTED BY REVENUE LEADERS AT
-                    </p>
-                    <div className="flex justify-center gap-8 mt-6 opacity-40 grayscale">
-                        {/* Placeholders for logos if we had them */}
-                        <div className="h-8 w-24 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-8 w-24 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-8 w-24 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-8 w-24 bg-slate-700 rounded animate-pulse" />
-                    </div>
-                </div>
             </main>
+
+            <Footer />
         </div>
     );
 }
