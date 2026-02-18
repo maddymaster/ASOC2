@@ -48,6 +48,7 @@ echo "Using source-based deployment with env.yaml..."
 # Note: This command builds the container using the Dockerfile in the current directory
 # and deploys it to Cloud Run.
 gcloud run deploy $SERVICE_NAME \
+    --quiet \
     --source . \
     --region $REGION \
     --project $PROJECT_ID \

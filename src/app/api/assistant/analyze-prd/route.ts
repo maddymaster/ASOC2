@@ -5,22 +5,25 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function POST(request: Request) {
     try {
         const formData = await request.formData();
-        const file = formData.get('file') as File;
+        const files = formData.getAll('files') as File[];
 
-        if (!file) {
-            return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
+        if (!files || files.length === 0) {
+            return NextResponse.json({ success: false, error: 'No files uploaded' }, { status: 400 });
         }
 
         let text = '';
 
-        if (file.type === 'application/pdf') {
-            const pdf = require('pdf-parse');
-            const buffer = Buffer.from(await file.arrayBuffer());
-            const data = await pdf(buffer);
-            text = data.text;
-        } else {
-            // Assume text/plain or similar
-            text = await file.text();
+        for (const file of files) {
+            if (file.type === 'application/pdf') {
+                const pdf = require('pdf-parse');
+                const buffer = Buffer.from(await file.arrayBuffer());
+                const data = await pdf(buffer);
+                text += `\n--- File: ${file.name} ---\n${data.text}\n`;
+            } else {
+                // Assume text/plain or similar
+                const fileText = await file.text();
+                text += `\n--- File: ${file.name} ---\n${fileText}\n`;
+            }
         }
 
         // Initialize Gemini

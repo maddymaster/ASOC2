@@ -48,21 +48,41 @@ export function LeadGenTab() {
         });
 
         try {
-            const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
+            // const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
 
-            const res = await fetch('/api/apollo', {
+            const res = await fetch('/api/explorium', { // Switched to Explorium
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     strategy,
-                    apiKey: savedConfig.apolloKey
+                    // apiKey: savedConfig.apolloKey // No longer needed on client, env var used on server
                 })
             });
 
             const data = await res.json();
 
             if (data.success) {
-                setLeads(data.leads || []);
+                let fetchedLeads = data.leads || [];
+
+                // INJECT TEST LEAD FOR DEMO (If Enterprise Security)
+                if (strategy.industry === "Enterprise Security" || strategy.industry === "Cybersecurity") {
+                    const testLead = {
+                        id: "ambee-test-lead",
+                        name: "Ambarish Mitra",
+                        email: "ambarish@graymatter.com", // Placeholder
+                        role: "CEO",
+                        company: "Ambee",
+                        location: "London, UK",
+                        employees: "50-200",
+                        industry: "Climate Tech",
+                        score: 95, // High score to trigger auth draft
+                        phone: "+44 7700 900077"
+                    };
+                    // Add to top
+                    fetchedLeads = [testLead, ...fetchedLeads];
+                }
+
+                setLeads(fetchedLeads);
 
                 addActivityEvent({
                     type: 'success',
