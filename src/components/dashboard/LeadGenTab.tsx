@@ -18,7 +18,10 @@ export function LeadGenTab() {
         addActivityEvent,
         setAgentStatus,
         leadScores,
-        setLeadScore
+        setLeadScore,
+        expertAnalysis,
+        setActiveTab,
+        setEmailQueue
     } = useMissionControl();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -214,6 +217,52 @@ export function LeadGenTab() {
             details: 'AI analysis finished'
         });
     };
+    const handleGenerateDraft = async (lead: any) => {
+        toast.promise(
+            async () => {
+                const response = await fetch('/api/email/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        leadId: lead.id,
+                        companyName: lead.company,
+                        contactName: lead.name,
+                        role: (lead as any).role || "Decision Maker",
+                        rationale: expertAnalysis?.sectors[0]?.rationale || "Strategic Fit",
+                        valueProp: expertAnalysis?.sectors[0]?.valueProposition || "AI Automation"
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to generate draft');
+
+                const data = await response.json();
+
+                // Add to Email Queue (Global State)
+                const newDraft: any = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    leadId: lead.id,
+                    leadName: lead.name,
+                    subject: data.subject,
+                    body: data.body, // API returns 'body'
+                    status: 'draft',
+                    sequenceStep: 1
+                };
+
+                setEmailQueue(prev => [newDraft, ...prev]);
+
+                // Switch tabs to Email Lab to view the draft
+                setActiveTab('email-campaigns');
+
+                return data;
+            },
+            {
+                loading: 'Drafting hyper-personalized email...',
+                success: 'Draft created! Head to Email Lab to review.',
+                error: 'Could not generate draft. Please try again.'
+            }
+        );
+    };
+
 
     const triggerOutboundCall = async (lead: any) => {
         toast.info(`Calling ${lead.name}...`, {
@@ -481,7 +530,12 @@ export function LeadGenTab() {
                                                 )}
 
                                                 <div className="flex gap-2 pt-2">
-                                                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-blue-500/10 hover:border-blue-500/30">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="flex-1 h-8 text-xs gap-1.5 border-slate-700 hover:bg-blue-500/10 hover:border-blue-500/30"
+                                                        onClick={() => handleGenerateDraft(lead)}
+                                                    >
                                                         <Mail className="h-3 w-3" />
                                                         Email
                                                     </Button>

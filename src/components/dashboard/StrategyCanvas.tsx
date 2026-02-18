@@ -29,7 +29,10 @@ export function StrategyCanvas() {
         addActivityEvent,
         strategyMode,
         setStrategyMode,
-        setCampaignConfig
+        setCampaignConfig,
+        uploadedFiles,
+        setUploadedFiles,
+        removeUploadedFile
     } = useMissionControl();
 
     const [expandedSectors, setExpandedSectors] = useState<Set<number>>(new Set());
@@ -67,52 +70,64 @@ export function StrategyCanvas() {
 
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
-        let selectedFile: File | null = null;
+        let newFiles: File[] = [];
 
         if ('dataTransfer' in e) {
-            selectedFile = e.dataTransfer.files[0];
+            if (e.dataTransfer.files) {
+                newFiles = Array.from(e.dataTransfer.files);
+            }
         } else if (e.target.files) {
-            selectedFile = e.target.files[0];
+            newFiles = Array.from(e.target.files);
         }
 
-        if (!selectedFile) return;
+        if (newFiles.length === 0) return;
 
         // File validation
         const maxSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = ['application/pdf', 'text/plain', 'text/markdown', 'image/png', 'image/jpeg'];
         const allowedExtensions = ['.pdf', '.txt', '.md', '.png', '.jpg', '.jpeg'];
 
-        // Check file size
-        if (selectedFile.size > maxSize) {
-            toast.error('File Too Large', {
-                description: `File size is ${(selectedFile.size / 1024 / 1024).toFixed(2)}MB. Maximum allowed is 10MB. Please upload a smaller file.`,
-                duration: 8000
-            });
-            return;
-        }
+        const validFiles: File[] = [];
 
-        // Check file type
-        const fileExtension = selectedFile.name.toLowerCase().match(/\.[^.]+$/)?.[0] || '';
-        const isValidType = allowedTypes.includes(selectedFile.type) || allowedExtensions.includes(fileExtension);
+        newFiles.forEach(file => {
+            // Check file size
+            if (file.size > maxSize) {
+                toast.error('File Too Large', {
+                    description: `${file.name} is ${(file.size / 1024 / 1024).toFixed(2)}MB. Max 10MB.`,
+                    duration: 5000
+                });
+                return;
+            }
 
-        if (!isValidType) {
-            toast.error('Unsupported File Type', {
-                description: `File type "${selectedFile.type || fileExtension}" is not supported. Please upload: PDF, TXT, MD, PNG, or JPG.`,
-                duration: 8000
-            });
-            return;
-        }
+            // Check file type
+            const fileExtension = file.name.toLowerCase().match(/\.[^.]+$/)?.[0] || '';
+            const isValidType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
 
-        // Show file info toast
-        toast.info('File Selected', {
-            description: `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)}KB) - Starting analysis...`,
-            duration: 3000
+            if (!isValidType) {
+                toast.error('Unsupported File Type', {
+                    description: `${file.name}: Type "${file.type || fileExtension}" not supported.`,
+                    duration: 5000
+                });
+                return;
+            }
+
+            validFiles.push(file);
         });
 
-        startAnalysis(selectedFile);
+        if (validFiles.length > 0) {
+            setUploadedFiles(prev => [...prev, ...validFiles]);
+            toast.success(`${validFiles.length} file(s) added to queue`);
+        }
+
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
-    const startAnalysis = async (file: File) => {
+    const startAnalysis = async (files: File[]) => {
+        if (files.length === 0) return;
+
         setStrategyMode('ANALYZING');
 
         // Set Safety Timeout (90s for larger files)
@@ -130,7 +145,9 @@ export function StrategyCanvas() {
 
         try {
             const formData = new FormData();
-            formData.append('file', file);
+            files.forEach(file => {
+                formData.append('files', file); // Use 'files' key for all
+            });
 
             const res = await fetch('/api/strategy/analyze', {
                 method: 'POST',
@@ -155,7 +172,7 @@ export function StrategyCanvas() {
             // Set the analysis result
             setExpertAnalysis({
                 id: Math.random().toString(),
-                fileName: file.name,
+                fileName: files.length > 1 ? `${files.length} Files` : files[0].name,
                 timestamp: new Date().toISOString(),
                 summary: result.summary,
                 sectors: result.sectors
@@ -302,6 +319,8 @@ export function StrategyCanvas() {
 
     // 1. IDLE STATE (Upload)
     if (strategyMode === 'IDLE') {
+        const hasFiles = uploadedFiles.length > 0;
+
         return (
             <div className="flex items-center justify-center h-full p-6">
                 <Card
@@ -318,6 +337,7 @@ export function StrategyCanvas() {
                     }}
                 >
                     <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-8">
+                        {/* Header Icon */}
                         <div className="relative">
                             <div className="flex items-center justify-center h-24 w-24 rounded-full bg-blue-500/10 ring-4 ring-blue-500/20">
                                 <Upload className="h-10 w-10 text-blue-400" />
@@ -327,10 +347,12 @@ export function StrategyCanvas() {
                             </div>
                         </div>
 
+                        {/* Title & Desc */}
                         <div className="space-y-3 max-w-md">
-                            <h3 className="text-2xl font-bold text-white tracking-tight">Upload Product Context</h3>
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Upload Mission Context</h3>
                             <p className="text-slate-300 leading-relaxed">
-                                Drag & drop your PRD, Product Spec, or Marketing One-Pager (PDF/TXT) to initialize the strategy agent.
+                                Drag & drop your PRD, Product Spec, or Marketing One-Pager (PDF/TXT/Images).
+                                You can upload multiple files to build a comprehensive context.
                             </p>
                             <p className="text-xs text-blue-400/70 flex items-center gap-1.5 justify-center">
                                 <Sparkles className="h-3 w-3" />
@@ -338,21 +360,73 @@ export function StrategyCanvas() {
                             </p>
                         </div>
 
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                        {/* File Queue List */}
+                        {hasFiles && (
+                            <div className="w-full max-w-md space-y-2">
+                                <div className="text-xs font-semibold text-slate-500 uppercase tracking-widest text-left pl-1 mb-2">Context Queue</div>
+                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                    {uploadedFiles.map((file, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 group hover:border-blue-500/30 transition-all">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="bg-blue-500/10 p-2 rounded">
+                                                    <FileText className="h-4 w-4 text-blue-400" />
+                                                </div>
+                                                <div className="flex flex-col text-left overflow-hidden">
+                                                    <span className="text-sm font-medium text-slate-200 truncate max-w-[200px]">{file.name}</span>
+                                                    <span className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</span>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 text-slate-500 hover:text-red-400 hover:bg-red-400/10"
+                                                onClick={() => removeUploadedFile(idx)}
+                                            >
+                                                <div className="sr-only">Remove</div>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="grid w-full max-w-sm items-center gap-3">
                             <input
                                 type="file"
                                 id="prd-upload"
                                 className="hidden"
                                 accept=".pdf,.txt,.md,.png,.jpg,.jpeg"
+                                multiple // Enable multiple
                                 ref={fileInputRef}
                                 onChange={handleFileSelect}
                             />
-                            <Button size="lg" className="w-full gap-2 text-base" onClick={() => fileInputRef.current?.click()}>
-                                <FileText className="h-4 w-4" />
-                                Select Document
-                            </Button>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="flex-1 gap-2 text-base border-slate-700 hover:bg-slate-800 text-slate-300"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Add File
+                                </Button>
+
+                                <Button
+                                    size="lg"
+                                    className="flex-1 gap-2 text-base bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600"
+                                    onClick={() => startAnalysis(uploadedFiles)}
+                                    disabled={!hasFiles}
+                                >
+                                    <Brain className="h-4 w-4" />
+                                    Analyze Context
+                                </Button>
+                            </div>
+
                             <p className="text-xs text-slate-500 mt-2">
-                                Supported formats: PDF, TXT, MD, PNG, JPG (Max 10MB)
+                                Supported formats: PDF, TXT, MD, PNG, JPG (Max 10MB each)
                             </p>
                         </div>
                     </CardContent>

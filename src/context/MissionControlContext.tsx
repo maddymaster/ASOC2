@@ -109,6 +109,11 @@ interface MissionControlContextType {
     selectedSector: string | null;
     setSelectedSector: React.Dispatch<React.SetStateAction<string | null>>;
 
+    // Strategies & Context
+    uploadedFiles: File[];
+    setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
+    removeUploadedFile: (index: number) => void;
+
     // AI Agent Orchestration
     agentStatus: 'idle' | 'analyzing' | 'ready' | 'active' | 'error';
     setAgentStatus: (status: 'idle' | 'analyzing' | 'ready' | 'active' | 'error') => void;
@@ -155,6 +160,13 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     const [expertAnalysis, setExpertAnalysis] = useState<PRDAnalysisResult | null>(null);
     const [analysisHistory, setAnalysisHistory] = useState<PRDAnalysisResult[]>([]);
 
+    // File Context State
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+    const removeUploadedFile = (index: number) => {
+        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     // Persistence for Analysis
     useEffect(() => {
         const saved = localStorage.getItem('mission_control_analysis');
@@ -185,6 +197,11 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
 
     const [selectedSector, setSelectedSector] = useState<string | null>(null);
 
+    // AI Agent Orchestration State
+    const [agentStatus, setAgentStatus] = useState<'idle' | 'analyzing' | 'ready' | 'active' | 'error'>('idle');
+    const [activityLog, setActivityLog] = useState<ActivityEvent[]>([]);
+    const [leadScores, setLeadScores] = useState<Map<string, LeadScore>>(new Map());
+
     // State Machine
     const [strategyMode, setStrategyMode] = useState<StrategyMode>('IDLE');
 
@@ -207,6 +224,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         setSelectedSector(null);
         setStrategyApproved(false);
         setStrategyMode('IDLE');
+        setUploadedFiles([]); // Clear files
 
         // 2. Clear Operational Data
         setLeads([]);
@@ -247,11 +265,6 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         setAnalysisHistory(prev => [analysis, ...prev]);
     };
 
-    // AI Agent Orchestration State
-    const [agentStatus, setAgentStatus] = useState<'idle' | 'analyzing' | 'ready' | 'active' | 'error'>('idle');
-    const [activityLog, setActivityLog] = useState<ActivityEvent[]>([]);
-    const [leadScores, setLeadScores] = useState<Map<string, LeadScore>>(new Map());
-
     const addActivityEvent = (event: Omit<ActivityEvent, 'id' | 'timestamp'>) => {
         const newEvent: ActivityEvent = {
             id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -284,7 +297,9 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             agentStatus, setAgentStatus,
             activityLog, addActivityEvent,
             leadScores, setLeadScore,
-            strategyMode, setStrategyMode, resetCombinedState
+            strategyMode, setStrategyMode, resetCombinedState,
+            // File Context
+            uploadedFiles, setUploadedFiles, removeUploadedFile
         }}>
             {children}
         </MissionControlContext.Provider>

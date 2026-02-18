@@ -176,16 +176,16 @@ export function CampaignWizardModal() {
             </DialogTrigger>
 
             {/* z-[9999] Modal with High Priority Isolation */}
-            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-0 border-0 bg-transparent gap-0 max-w-none w-full h-full pointer-events-none">
-                {/* Backdrop overlay - prevents interaction with background */}
+            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 border-0 bg-transparent gap-0 max-w-none w-full h-full pointer-events-none">
+                {/* Backdrop overlay - z-[9998] */}
                 <div
-                    className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm pointer-events-auto"
+                    className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm pointer-events-auto"
                     onClick={() => setOpen(false)}
                     aria-hidden="true"
                 />
 
-                {/* Modal content - centered and above backdrop */}
-                <div className="relative z-[10000] w-full max-w-5xl h-[650px] bg-slate-900 rounded-xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200">
+                {/* Modal content - z-[9999] - Centered & Responsive */}
+                <div className="relative z-[9999] w-full max-w-4xl h-[85vh] max-h-[900px] min-h-[500px] bg-slate-900 rounded-xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700">
                         <DialogTitle>New Campaign Wizard</DialogTitle>
                     </DialogHeader>
@@ -366,11 +366,6 @@ export function CampaignWizardModal() {
                                                 onClick={() => {
                                                     setStrategyApproved(true);
                                                     setActiveTab('lead-gen');
-                                                    // Trigger Lead Gen Fetch
-                                                    // We can't easily call fetchLeads from here as it's in LeadGenTab
-                                                    // But we can set a flag or use a refined strategy
-                                                    // ideally, LeadGenTab should auto-fetch if strategy is approved and leads are empty
-                                                    // For now, let's just switch tab and close modal
                                                     setOpen(false);
                                                 }}
                                             >
@@ -421,6 +416,25 @@ function ConfigCard({ title, icon, active, onClick }: any) {
                 <div className={cn("w-3 h-3 rounded-full border", active ? "bg-purple-600 border-purple-600" : "border-gray-400")} />
             </div>
             <span className="text-xs font-semibold">{title}</span>
+        </div>
+    )
+}
+
+function StepItem({ icon: Icon, label, active, completed }: any) {
+    return (
+        <div className={cn(
+            "flex items-center gap-3 p-2 rounded-lg transition-all",
+            active ? "bg-blue-500/10 text-blue-400" : "text-slate-500",
+            completed ? "text-green-400" : ""
+        )}>
+            <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center border transition-colors bg-slate-950 z-10",
+                active ? "border-blue-500 text-blue-400" : "border-slate-700",
+                completed ? "border-green-500 bg-green-500/10 text-green-400" : ""
+            )}>
+                {completed ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+            </div>
+            <span className={cn("text-sm font-medium", active ? "text-white" : "")}>{label}</span>
         </div>
     )
 }

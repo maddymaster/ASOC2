@@ -2,59 +2,44 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
-    let fileName = 'unknown'; // Declare at function scope for error handling
+    let fileCount = 0;
 
     try {
         const formData = await req.formData();
-        const file = formData.get('file') as File;
+        const files = formData.getAll('files') as File[];
         const instructions = formData.get('instructions') as string || '';
 
-        if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+        if (!files || files.length === 0) {
+            return NextResponse.json({ error: 'No files provided' }, { status: 400 });
         }
 
-        fileName = file.name; // Capture filename for error handling
-
+        fileCount = files.length;
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: 'Missing API Key' }, { status: 500 });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Latest stable model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Ensure 1.5 Pro for best multimodal
 
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        console.log(`[Analyze] Processing ${fileCount} files...`);
 
-        // Detect MIME type intelligently
-        let mimeType = file.type;
-        if (!mimeType || mimeType === 'application/octet-stream') {
-            const fileName = file.name.toLowerCase();
-            if (fileName.endsWith('.pdf')) mimeType = 'application/pdf';
-            else if (fileName.endsWith('.txt')) mimeType = 'text/plain';
-            else if (fileName.endsWith('.md')) mimeType = 'text/markdown';
-            else if (fileName.endsWith('.png')) mimeType = 'image/png';
-            else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) mimeType = 'image/jpeg';
-            else mimeType = 'application/pdf'; // default fallback
-        }
-
-        console.log(`[Analyze] Processing file: ${file.name}, size: ${buffer.length} bytes, mimeType: ${mimeType}`);
-
-        const prompt = `
+        // Prepare prompt content parts
+        const promptText = `
             You are an expert Chief Strategy Officer and AI Systems Architect. 
-            Analyze this uploaded document (PRD, Product Spec, or Marketing One-Pager).
+            Analyze the following uploaded context documents (PRDs, Product Specs, Marketing/Sales collateral).
             
             **Goal:** 
-            Identify the top 3 target market sectors for this product and recommend an AI agent strategy for each.
-            Also, determine the optimal "Campaign Configuration" (Email vs. Voice vs. Receptionist) based on the product type.
+            Synthesize the information from ALL provided documents to identify the top 3 target market sectors for this product and recommend an AI agent strategy for each.
+            Also, determine the optimal "Campaign Configuration" (Email vs. Voice vs. Receptionist) based on the comprehensive product understanding.
 
             **Additional User Instructions:**
             ${instructions}
 
             **Output Format:**
-            Return a purely valid JSON object (no markdown, no backticks) with the following specific structure:
+            Return a purely valid JSON object (no markdown, no backticks) with the following structure:
             {
-                "summary": "High-level summary of the product and strategy reasoning (max 2 sentences).",
+                "summary": "High-level summary of the product and consolidated strategy reasoning (max 2 sentences).",
                 "sectors": [
                     {
                         "sector": "Name of the sector (e.g., Enterprise Fintech)",
@@ -73,91 +58,42 @@ export async function POST(req: NextRequest) {
             
             **Configuration Logic:**
             - **emailSequence**: Always true (base layer).
-            - **outboundVoice**: True if the product is high-value B2B, local service, or requires complex qualification that a voice agent handles well. False for pure PLG or dev tools.
-            - **inboundReceptionist**: True if the business seems to be a service provider (agency, clinic, firm) that receives inbound calls.
+            - **outboundVoice**: True if the product is high-value B2B, local service, or requires complex qualification.
+            - **inboundReceptionist**: True if the business seems to be a service provider (agency, clinic, firm).
         `;
 
-        let result;
-        let parseMethod = 'direct';
+        const contentParts: any[] = [
+            { text: promptText }
+        ];
 
-        try {
-            // PRIMARY METHOD: Direct multimodal upload
-            // Gemini 1.5 Pro natively supports PDFs and images
+        // Process each file
+        for (const file of files) {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
             const base64Data = buffer.toString('base64');
 
-            result = await model.generateContent([
-                prompt,
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: mimeType
-                    }
-                }
-            ]);
-
-            // Validate response
-            const testText = result.response.text();
-            if (!testText || testText.trim().length < 20) {
-                throw new Error('Response empty or too short');
+            let mimeType = file.type;
+            if (!mimeType || mimeType === 'application/octet-stream') {
+                const lowerName = file.name.toLowerCase();
+                if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
+                else if (lowerName.endsWith('.txt')) mimeType = 'text/plain';
+                else if (lowerName.endsWith('.md')) mimeType = 'text/markdown';
+                else if (lowerName.endsWith('.png')) mimeType = 'image/png';
+                else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
+                else mimeType = 'application/pdf';
             }
 
-            console.log(`[Analyze] Success via direct upload`);
+            console.log(`[Analyze] Adding file: ${file.name} (${mimeType})`);
 
-        } catch (directError: any) {
-            console.warn(`[Analyze] Direct parsing failed:`, directError.message);
-
-            // FALLBACK METHOD: Text-only extraction for PDFs
-            if (mimeType === 'application/pdf') {
-                try {
-                    parseMethod = 'text-fallback';
-                    // Try sending as base64 with explicit instructions
-                    const base64Data = buffer.toString('base64');
-
-                    result = await model.generateContent([
-                        prompt + `\n\n**IMPORTANT:** Extract all text content from this PDF document. If the PDF contains images or complex layouts, describe the visual elements and extract any visible text. Be thorough.`,
-                        {
-                            inlineData: {
-                                data: base64Data,
-                                mimeType: 'application/pdf'
-                            }
-                        }
-                    ]);
-
-                    console.log(`[Analyze] Success via PDF text fallback`);
-
-                } catch (fallbackError: any) {
-                    console.error(`[Analyze] PDF fallback also failed:`, fallbackError.message);
-                    throw new Error(
-                        `Unable to parse PDF file. Try: (1) Converting to PNG/JPG first, (2) Ensuring PDF is not password-protected, or (3) Using a plain text file instead. Error: ${fallbackError.message}`
-                    );
+            contentParts.push({
+                inlineData: {
+                    data: base64Data,
+                    mimeType: mimeType
                 }
-            } else if (mimeType.startsWith('image/')) {
-                // Image fallback: retry with explicit image instructions
-                try {
-                    parseMethod = 'image-OCR';
-                    const base64Data = buffer.toString('base64');
-
-                    result = await model.generateContent([
-                        prompt + `\n\n**IMPORTANT:** This is an image file. Perform OCR to extract all visible text. Pay special attention to headings, bullet points, and key product information.`,
-                        {
-                            inlineData: {
-                                data: base64Data,
-                                mimeType: mimeType
-                            }
-                        }
-                    ]);
-
-                    console.log(`[Analyze] Success via image OCR fallback`);
-
-                } catch (imageError: any) {
-                    throw new Error(`Image OCR failed: ${imageError.message}`);
-                }
-            } else {
-                // Not a PDF or image, re-throw original error
-                throw new Error(`Parsing failed for ${mimeType}: ${directError.message}`);
-            }
+            });
         }
 
+        const result = await model.generateContent(contentParts);
         const response = result.response;
         const text = response.text();
 
@@ -165,14 +101,9 @@ export async function POST(req: NextRequest) {
 
         // Robust JSON extraction
         let jsonStr = text.trim();
-
-        // Remove markdown code blocks if present
         jsonStr = jsonStr.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-
-        // Find JSON object (look for first { and last })
         const firstBrace = jsonStr.indexOf('{');
         const lastBrace = jsonStr.lastIndexOf('}');
-
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
             jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
         }
@@ -184,67 +115,34 @@ export async function POST(req: NextRequest) {
             throw new Error('Invalid analysis structure: missing required fields');
         }
 
-        console.log(`[Analyze] Successfully parsed analysis with ${analysis.sectors.length} sectors`);
-
         return NextResponse.json({
             ...analysis,
             _meta: {
-                parseMethod,
-                fileName: file.name,
-                fileSize: buffer.length,
-                mimeType
+                fileCount,
+                timestamp: new Date().toISOString()
             }
         });
 
     } catch (error: any) {
         console.error('[Analyze] Fatal error:', error);
-        console.error('[Analyze] Error stack:', error.stack);
-        console.error('[Analyze] Error name:', error.name);
-        console.error('[Analyze] Error message:', error.message);
 
-        // Determine specific error type and provide actionable feedback
-        let errorType = 'unknown';
-        let userMessage = 'Failed to analyze document';
-        let suggestion = 'Please try again or contact support if the issue persists.';
+        // Error handling logic
+        let userMessage = 'Failed to analyze documents';
+        let suggestion = 'Please try again or contact support.';
 
         if (error.message?.includes('API key')) {
-            errorType = 'api_key_missing';
             userMessage = 'API Configuration Error';
-            suggestion = 'The Gemini API key is not configured. Please contact your administrator.';
-        } else if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
-            errorType = 'rate_limit';
-            userMessage = 'API Rate Limit Exceeded';
-            suggestion = 'Too many requests. Please wait a few minutes and try again.';
+            suggestion = 'The Gemini API key is not configured.';
         } else if (error.message?.includes('JSON')) {
-            errorType = 'json_parse_error';
             userMessage = 'AI Response Format Error';
-            suggestion = 'The AI returned an unexpected format. Try uploading a different document or simplifying your file.';
-        } else if (error.message?.includes('PDF') || error.message?.includes('parse')) {
-            errorType = 'file_parse_error';
-            userMessage = 'File Parsing Error';
-            suggestion = 'Unable to extract content from this file. Try converting your PDF to an image (PNG/JPG) or plain text file.';
-        } else if (error.message?.includes('timeout') || error.message?.includes('ETIMEDOUT')) {
-            errorType = 'timeout';
-            userMessage = 'Analysis Timeout';
-            suggestion = 'The file took too long to analyze. Try a smaller file or simpler document.';
-        } else if (error.message?.includes('network') || error.message?.includes('ECONNREFUSED')) {
-            errorType = 'network_error';
-            userMessage = 'Network Connection Error';
-            suggestion = 'Unable to reach the AI service. Please check your internet connection and try again.';
+            suggestion = 'The AI returned an unexpected format. Try simplfying your files.';
         }
 
         return NextResponse.json({
             error: userMessage,
-            errorType,
             details: error.message,
             suggestion,
-            fileName: fileName,
-            timestamp: new Date().toISOString(),
-            // For debugging (remove in production if sensitive)
-            debugInfo: process.env.NODE_ENV === 'development' ? {
-                stack: error.stack,
-                apiKeyPresent: !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_API_KEY,
-            } : undefined
+            timestamp: new Date().toISOString()
         }, { status: 500 });
     }
 }
