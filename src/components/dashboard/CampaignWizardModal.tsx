@@ -107,6 +107,7 @@ export function CampaignWizardModal() {
             console.error("Analysis failed", error);
             clearInterval(interval);
             setStep("upload");
+            setFile(null); // Force re-upload to clear stale state
         }
     };
 
@@ -175,7 +176,7 @@ export function CampaignWizardModal() {
             </DialogTrigger>
 
             {/* z-[9999] Modal with High Priority Isolation */}
-            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-0 border-0 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out gap-0 max-w-none w-full h-full pointer-events-none">
+            <DialogContent className="fixed inset-0 z-[9999] flex items-center justify-center p-0 border-0 bg-transparent gap-0 max-w-none w-full h-full pointer-events-none">
                 {/* Backdrop overlay - prevents interaction with background */}
                 <div
                     className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm pointer-events-auto"
@@ -183,8 +184,8 @@ export function CampaignWizardModal() {
                     aria-hidden="true"
                 />
 
-                {/* Modal content - above backdrop */}
-                <div className="relative z-[10000] w-full max-w-5xl h-[650px] bg-slate-900 rounded-lg shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto">
+                {/* Modal content - centered and above backdrop */}
+                <div className="relative z-[10000] w-full max-w-5xl h-[650px] bg-slate-900 rounded-xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 duration-200">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700">
                         <DialogTitle>New Campaign Wizard</DialogTitle>
                     </DialogHeader>

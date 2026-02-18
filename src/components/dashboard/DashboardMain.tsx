@@ -22,53 +22,12 @@ import { useEffect } from "react";
 export default function DashboardMain() {
     const { leads, strategy, setActiveCall, setCallHistory, activeTab, setActiveTab, setLeads } = useMissionControl();
 
+    // NUCLEAR FIX: Removed duplicate fetch logic. 
+    // LeadGenTab.tsx handles the fetching when it mounts.
     useEffect(() => {
-        if (activeTab === 'lead-gen' && strategy) {
-            const fetchAndDraft = async () => {
-                try {
-                    // Get keys from settings
-                    const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
-
-                    // 1. Fetch Leads
-                    const res = await fetch('/api/apollo', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            strategy,
-                            apiKey: savedConfig.apolloKey
-                        })
-                    });
-                    const data = await res.json();
-
-                    if (data.success && data.leads) {
-                        setLeads(data.leads);
-
-                        // 2. Automated Enrichment & Drafting (Top 5)
-                        const topLeads = data.leads.slice(0, 5);
-
-                        topLeads.forEach(async (lead: any) => {
-                            await fetch('/api/email/draft', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    leadId: lead.id,
-                                    companyName: lead.company,
-                                    contactName: lead.name,
-                                    role: lead.title,
-                                    rationale: strategy.rationale,
-                                    valueProp: "AI-Driven Sales Operations"
-                                    // openAIKey could be passed here if needed by the backend
-                                })
-                            });
-                        });
-                    }
-                } catch (e) {
-                    console.error("Pipeline Error:", e);
-                }
-            };
-            fetchAndDraft();
-        }
-    }, [activeTab, strategy, setLeads]);
+        // Only draft emails if we have leads but they aren't drafted yet?
+        // Actually, let LeadGenTab handle the auto-drafting too to keep logic co-located.
+    }, []);
 
     const handleCall = async (lead: any) => {
         console.log("Calling", lead.name);

@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
-    const { setActiveTab } = useMissionControl();
+    const { setActiveTab, resetCombinedState } = useMissionControl();
 
     const navItems = [
         { id: "strategy", label: "Strategy", icon: Target, href: "/dashboard" },
@@ -94,11 +94,20 @@ export function Sidebar() {
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                 </Button>
-                <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/30">
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                    onClick={() => {
+                        if (confirm("⚠️ NUCLEAR RESET: This will wipe all campaign data, leads, and history. Are you sure?")) {
+                            resetCombinedState();
+                            window.location.reload(); // Force hard refresh to clear any lingering React state
+                        }
+                    }}
+                >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    Reset System
                 </Button>
             </div>
-        </div>
+        </div >
     );
 }
