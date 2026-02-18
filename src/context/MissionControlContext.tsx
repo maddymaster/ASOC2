@@ -125,6 +125,12 @@ interface MissionControlContextType {
     strategyMode: StrategyMode;
     setStrategyMode: (mode: StrategyMode) => void;
     resetCombinedState: () => void;
+    // Wizard Persistence
+    wizardStep: "upload" | "analyzing" | "chat";
+    setWizardStep: (step: "upload" | "analyzing" | "chat") => void;
+    wizardMessages: Message[];
+    setWizardMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    addWizardMessage: (msg: Message) => void;
 }
 
 
@@ -140,6 +146,7 @@ export interface PRDAnalysisResult {
         valueProposition: string;
         painPoints: string[];
         strategyMix?: string;
+        keyNewsSignals?: string[];
     }[];
 }
 
@@ -217,6 +224,18 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         resetCombinedState();
     };
 
+    const [wizardStep, setWizardStep] = useState<"upload" | "analyzing" | "chat">("upload");
+    const [wizardMessages, setWizardMessages] = useState<Message[]>([
+        {
+            role: 'assistant',
+            content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your PRD, Service Document, or Product Spec to begin our analysis."
+        }
+    ]);
+
+    const addWizardMessage = (msg: Message) => {
+        setWizardMessages((prev) => [...prev, msg]);
+    };
+
     const resetCombinedState = () => {
         // 1. Clear Analysis & Strategy
         setExpertAnalysis(null);
@@ -225,6 +244,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         setStrategyApproved(false);
         setStrategyMode('IDLE');
         setUploadedFiles([]); // Clear files
+        setWizardStep("upload"); // Reset Wizard Step
 
         // 2. Clear Operational Data
         setLeads([]);
@@ -240,6 +260,14 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             {
                 role: 'assistant',
                 content: "Hello! I'm your Mission Control assistant. Upload your PRD or tell me about your service to generate a targeted lead strategy."
+            }
+        ]);
+
+        // Reset Wizard Messages
+        setWizardMessages([
+            {
+                role: 'assistant',
+                content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your PRD, Service Document, or Product Spec to begin our analysis."
             }
         ]);
 
@@ -299,7 +327,10 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             leadScores, setLeadScore,
             strategyMode, setStrategyMode, resetCombinedState,
             // File Context
-            uploadedFiles, setUploadedFiles, removeUploadedFile
+            uploadedFiles, setUploadedFiles, removeUploadedFile,
+            // Wizard Persistence
+            wizardStep, setWizardStep,
+            wizardMessages, setWizardMessages, addWizardMessage
         }}>
             {children}
         </MissionControlContext.Provider>

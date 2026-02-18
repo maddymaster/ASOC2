@@ -1,0 +1,1 @@
+This is a test PRD for a CRM product targeting Enterprise Sales teams. It includes features like automated email sequencing, AI voice agents, and lead scoring. Users need to be able to upload documents and get strategic advice. Ideally fits B2B SaaS sector.

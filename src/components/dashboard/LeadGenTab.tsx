@@ -29,10 +29,10 @@ export function LeadGenTab() {
 
     // Auto-fetch leads when strategy is set
     useEffect(() => {
-        if (strategy) {
+        if (strategy && leads.length === 0) {
             fetchLeads();
         }
-    }, [strategy]);
+    }, [strategy, leads.length]);
 
     const fetchLeads = async () => {
         if (!strategy) return;

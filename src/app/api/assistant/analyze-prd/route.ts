@@ -11,21 +11,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'No files uploaded' }, { status: 400 });
         }
 
-        let text = '';
-
-        for (const file of files) {
-            if (file.type === 'application/pdf') {
-                const pdf = require('pdf-parse');
-                const buffer = Buffer.from(await file.arrayBuffer());
-                const data = await pdf(buffer);
-                text += `\n--- File: ${file.name} ---\n${data.text}\n`;
-            } else {
-                // Assume text/plain or similar
-                const fileText = await file.text();
-                text += `\n--- File: ${file.name} ---\n${fileText}\n`;
-            }
-        }
-
         // Initialize Gemini
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY;
         if (!apiKey) {
@@ -33,12 +18,13 @@ export async function POST(request: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Latest stable Flash model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Using 1.5 Flash for availability
 
         const prompt = `
-        Analyze the following Product Requirement Document (PRD) or product description.
+        Act as a Senior AI Orchestration Engineer.
+        Analyze the provided Product Requirement Document (PRD) or product description files.
         
-        Task: Identify 3-4 key target sectors/industries that would be ideal customers for this product.
+        Task: Perform a deep extraction to identify 3-4 key target sectors/industries.
         
         For *each* sector, you must provide the following details:
         1. **Sector Name**: Specific industry (e.g., "Enterprise Fintech", "Healthcare Providers").
@@ -47,6 +33,7 @@ export async function POST(request: Request) {
         4. **Value Proposition**: The main selling point specifically for this sector.
         5. **Pain Points**: Specific problems or challenges this sector faces that this product solves.
         6. **Strategy Mix**: Suggested outreach channels (e.g., "Cold Email + LinkedIn", "Direct Sales").
+        7. **Key News Signals**: Specific triggers to monitor via Apollo.io (e.g., "Series B Funding", "New CTO Hiring", "Regulatory Fine").
 
         Return the response as a valid JSON object with this exact structure:
         {
@@ -58,16 +45,40 @@ export async function POST(request: Request) {
               "targetRoles": ["..."],
               "valueProposition": "...",
               "painPoints": ["..."],
-              "strategyMix": "..."
+              "strategyMix": "...",
+              "keyNewsSignals": ["..."]
             }
           ]
         }
-        
-        Document Content:
-        ${text.substring(0, 30000)} 
-        `; // Limit text to avoid token limits if very large
+        `;
 
-        const result = await model.generateContent(prompt);
+        const contentParts: any[] = [
+            { text: prompt }
+        ];
+
+        // Process files into inlineData
+        for (const file of files) {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64Data = buffer.toString('base64');
+
+            let mimeType = file.type;
+            // Fallback mime type detection if empty
+            if (!mimeType || mimeType === 'application/octet-stream') {
+                if (file.name.toLowerCase().endsWith('.pdf')) mimeType = 'application/pdf';
+                else if (file.name.toLowerCase().endsWith('.txt')) mimeType = 'text/plain';
+                else mimeType = 'application/pdf'; // Default
+            }
+
+            contentParts.push({
+                inlineData: {
+                    data: base64Data,
+                    mimeType
+                }
+            });
+        }
+
+        const result = await model.generateContent(contentParts);
         const response = await result.response;
         let jsonStr = response.text();
 
@@ -80,7 +91,6 @@ export async function POST(request: Request) {
         } catch (e) {
             console.error("JSON Parse Error:", e);
             console.log("Raw Response:", jsonStr);
-            // Fallback or retry logic could go here
             throw new Error("Failed to parse AI response as JSON");
         }
 
