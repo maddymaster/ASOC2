@@ -228,7 +228,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
     const [wizardMessages, setWizardMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your PRD, Service Document, or Product Spec to begin our analysis."
+            content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your Product or Service documents to initialize the strategy agent."
         }
     ]);
 
@@ -267,7 +267,7 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
         setWizardMessages([
             {
                 role: 'assistant',
-                content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your PRD, Service Document, or Product Spec to begin our analysis."
+                content: "Welcome to Mission Control. I am your Strategic Supervisor. Please upload your Product or Service documents to initialize the strategy agent."
             }
         ]);
 

@@ -88,9 +88,15 @@ export function CampaignWizardModal() {
                 setExpertAnalysis(analysisWithMeta);
                 addToHistory(analysisWithMeta);
 
-                // Supervisor Prompt: Interactive Refinement
+                // Supervisor Prompt: Interactive Refinement (3-Point Summary)
                 const primeSector = data.analysis.sectors[0];
-                const refinementMsg = `I’ve analyzed your ${uploadedFiles.length > 1 ? 'documents' : 'document'}. \n\nI recommend targeting **${primeSector.sector}** and focusing on **"${primeSector.valueProposition}"**. \n\nDoes this align with your mission goals, or shall we adjust the parameters?`;
+                const refinementMsg = `I’ve analyzed your ${uploadedFiles.length > 1 ? 'documents' : 'document'}. Here is the strategy summary:
+
+1. **Core Product**: ${data.analysis.summary}
+2. **Target Market**: ${primeSector.sector} (Roles: ${primeSector.targetRoles.join(', ')})
+3. **Suggested Channels**: ${primeSector.strategyMix}
+
+Does this align with your mission goals, or shall we adjust the parameters?`;
 
                 addWizardMessage({
                     role: 'assistant',

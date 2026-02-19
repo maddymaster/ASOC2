@@ -65,22 +65,8 @@ export function LeadGenTab() {
                 let fetchedLeads = data.leads || [];
 
                 // INJECT TEST LEAD FOR DEMO (If Enterprise Security)
-                if (strategy.industry === "Enterprise Security" || strategy.industry === "Cybersecurity") {
-                    const testLead = {
-                        id: "ambee-test-lead",
-                        name: "Ambarish Mitra",
-                        email: "ambarish@graymatter.com", // Placeholder
-                        role: "CEO",
-                        company: "Ambee",
-                        location: "London, UK",
-                        employees: "50-200",
-                        industry: "Climate Tech",
-                        score: 95, // High score to trigger auth draft
-                        phone: "+44 7700 900077"
-                    };
-                    // Add to top
-                    fetchedLeads = [testLead, ...fetchedLeads];
-                }
+                // REMOVED TEST LEAD INJECTION FOR PRODUCTION/NUCLEAR RESET
+                // if (strategy.industry === "Enterprise Security" || strategy.industry === "Cybersecurity") { ... }
 
                 setLeads(fetchedLeads);
 
