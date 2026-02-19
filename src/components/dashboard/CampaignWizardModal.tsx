@@ -122,6 +122,17 @@ export function CampaignWizardModal() {
         addWizardMessage({ role: 'user', content: userMsg });
         setChatInput("");
 
+        // AGENT DEPLOYMENT COMMAND LOGIC
+        // "Deploy the Outbound Voice agent" -> Toggles Outbound Voice ON
+        if (userMsg.toLowerCase().includes("deploy") && userMsg.toLowerCase().includes("voice")) {
+            setCampaignConfig(prev => ({ ...prev, outboundVoice: true }));
+            addWizardMessage({
+                role: 'assistant',
+                content: "Acknowledged. I have activated the **Outbound Voice Agent** configuration. It is now ready to be initialized with the analyzed script."
+            });
+            return;
+        }
+
         if (isStrategyApproved) return;
 
         // Mock Refinement Response for now (or call real endpoint if exists)
