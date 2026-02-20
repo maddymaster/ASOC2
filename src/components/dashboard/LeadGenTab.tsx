@@ -21,7 +21,8 @@ export function LeadGenTab() {
         setLeadScore,
         expertAnalysis,
         setActiveTab,
-        setEmailQueue
+        setEmailQueue,
+        emailTone
     } = useMissionControl();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -235,7 +236,8 @@ export function LeadGenTab() {
                         contactName: lead.name,
                         role: (lead as any).role || "Decision Maker",
                         rationale: expertAnalysis?.sectors[0]?.rationale || "Strategic Fit",
-                        valueProp: expertAnalysis?.sectors[0]?.valueProposition || "AI Automation"
+                        valueProp: expertAnalysis?.sectors[0]?.valueProposition || "AI Automation",
+                        tone: emailTone
                     })
                 });
 

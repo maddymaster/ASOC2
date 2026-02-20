@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
-// Schema for consistent output
 const ANALYSIS_SCHEMA = `
 {
+  "coreProductValue": "Deep analysis of the core product value and offering.",
+  "targetIndustryPersonas": [
+    {
+      "industry": "...",
+      "personas": ["..."],
+      "rationale": "..."
+    }
+  ],
+  "specificSalesPainPoints": ["...", "..."],
   "summary": "Brief 1-2 sentence summary of the product (Core Product).",
   "sectors": [
     {
@@ -24,11 +32,15 @@ const PROMPT_TEXT = `
 Act as a Senior AI Orchestration Engineer.
 Analyze the provided Product Requirement Document (PRD) or product description files.
 
-Task: Perform a deep extraction to identify 3-4 key target sectors/industries.
+Task: Perform a deep multimodal extraction. You must extract:
+1. **Core Product Value**: Deep analysis of the main offering and its value.
+2. **Target Industry/Personas**: Who is this for? Identify specific industries and personas/decision-makers.
+3. **Specific Sales Pain Points**: What specific problems does this solve that sales should focus on?
+
 CRITICAL: Do NOT hallucinate. Only use information present in the file. If the file is unclear or contains no product info, return an empty analysis or validation error.
 Do NOT default to "Enterprise Security" or "Cybersecurity" unless explicitly stated in the text.
 
-For *each* sector, find:
+For *each* sector identified, also find:
 1. **Sector Name**: Specific industry.
 2. **Rationale**: Why this sector?
 3. **Target Roles**: Decision makers.
@@ -163,7 +175,7 @@ export async function POST(request: Request) {
             return NextResponse.json({
                 success: false,
                 error: "All analysis models failed.",
-                details: "I encountered an issue reading that specific file format. Could you try a PDF or a clearer text version?"
+                details: "I am struggling with the formatting of this PDF. Could you paste the text directly into our chat or try a different export?"
             }, { status: 500 });
         }
     }

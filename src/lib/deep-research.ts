@@ -10,12 +10,15 @@ export class DeepResearchService {
         contactName: string,
         role: string,
         rationale: string,
-        valueProp: string
+        valueProp: string,
+        tone: string | null = null
     ) {
         // Mock or Real Logic depending on API Key presence
+        const toneDirective = tone ? `Tone: The email MUST be ${tone}.` : "Tone: Professional and persuasive.";
         const prompt = `Draft a cold email to ${contactName}, ${role} at ${companyName}.
         Rationale: ${rationale}
         Value Prop: ${valueProp}
+        ${toneDirective}
         Keep it under 150 words.`;
 
         let emailBody = "";

@@ -131,8 +131,9 @@ interface MissionControlContextType {
     wizardMessages: Message[];
     setWizardMessages: React.Dispatch<React.SetStateAction<Message[]>>;
     addWizardMessage: (msg: Message) => void;
+    emailTone: string | null;
+    setEmailTone: React.Dispatch<React.SetStateAction<string | null>>;
 }
-
 
 export interface PRDAnalysisResult {
     id?: string;
@@ -211,6 +212,8 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
 
     // State Machine
     const [strategyMode, setStrategyMode] = useState<StrategyMode>('IDLE');
+
+    const [emailTone, setEmailTone] = useState<string | null>(null);
 
     const addMessage = (msg: Message) => {
         setMessages((prev) => [...prev, msg]);
@@ -330,7 +333,8 @@ export const MissionControlProvider = ({ children }: { children: ReactNode }) =>
             uploadedFiles, setUploadedFiles, removeUploadedFile,
             // Wizard Persistence
             wizardStep, setWizardStep,
-            wizardMessages, setWizardMessages, addWizardMessage
+            wizardMessages, setWizardMessages, addWizardMessage,
+            emailTone, setEmailTone
         }}>
             {children}
         </MissionControlContext.Provider>

@@ -38,7 +38,9 @@ export function CampaignWizardModal() {
         wizardStep, setWizardStep,
         wizardMessages, setWizardMessages, addWizardMessage,
         // Files
-        uploadedFiles, setUploadedFiles, removeUploadedFile
+        uploadedFiles, setUploadedFiles, removeUploadedFile,
+        // Fine Tuning
+        emailTone, setEmailTone
     } = useMissionControl();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,9 +94,9 @@ export function CampaignWizardModal() {
                 const primeSector = data.analysis.sectors[0];
                 const refinementMsg = `I’ve analyzed your ${uploadedFiles.length > 1 ? 'documents' : 'document'}. Here is the strategy summary:
 
-1. **Core Product**: ${data.analysis.summary}
-2. **Target Market**: ${primeSector.sector} (Roles: ${primeSector.targetRoles.join(', ')})
-3. **Suggested Channels**: ${primeSector.strategyMix}
+1. **Core Product Value**: ${data.analysis.coreProductValue || data.analysis.summary}
+2. **Target Industry/Personas**: ${data.analysis.targetIndustryPersonas?.[0]?.industry || primeSector?.sector} (Roles: ${(data.analysis.targetIndustryPersonas?.[0]?.personas || primeSector?.targetRoles || []).join(', ')})
+3. **Specific Sales Pain Points**: ${(data.analysis.specificSalesPainPoints || primeSector?.painPoints || []).join(', ')}
 
 Does this align with your mission goals, or shall we adjust the parameters?`;
 
@@ -107,7 +109,7 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
             } else {
                 addWizardMessage({
                     role: 'assistant',
-                    content: "I encountered an issue reading that specific file format. Could you try a PDF or a clearer text version?"
+                    content: data.details || "I am struggling with the formatting of this PDF. Could you paste the text directly into our chat or try a different export?"
                 });
                 setTimeout(() => setWizardStep("chat"), 800);
             }
@@ -115,9 +117,14 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
         } catch (error) {
             console.error("Analysis failed", error);
             clearInterval(interval);
-            setWizardStep("upload"); // Fallback to upload to try again
-            // setUploadedFiles([]); // Keep files so user doesn't have to re-select if it was a network blip
-            toast.error("Analysis Error", { description: "Please check your connection and try again." });
+
+            addWizardMessage({
+                role: 'assistant',
+                content: "I am struggling with the formatting of this PDF. Could you paste the text directly into our chat or try a different export?"
+            });
+            setWizardStep("chat");
+
+            toast.error("Analysis Error", { description: "Both analysis models failed to read the document." });
         }
     };
 
@@ -128,27 +135,67 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
         addWizardMessage({ role: 'user', content: userMsg });
         setChatInput("");
 
-        // AGENT DEPLOYMENT COMMAND LOGIC
-        // "Deploy the Outbound Voice agent" -> Toggles Outbound Voice ON
-        if (userMsg.toLowerCase().includes("deploy") && userMsg.toLowerCase().includes("voice")) {
-            setCampaignConfig(prev => ({ ...prev, outboundVoice: true }));
+        if (isStrategyApproved) return;
+
+        if (userMsg.length > 50) {
+            const textFile = new File([userMsg], "pasted_text.txt", { type: "text/plain" });
+            setUploadedFiles([textFile]);
             addWizardMessage({
                 role: 'assistant',
-                content: "Acknowledged. I have activated the **Outbound Voice Agent** configuration. It is now ready to be initialized with the analyzed script."
+                content: "I have received your text input. Please click 'Analyze Context' on the right to process this new information."
             });
             return;
         }
 
-        if (isStrategyApproved) return;
+        // Append user message immediately
+        const updatedMessages = [...wizardMessages, { role: 'user', content: userMsg }];
 
-        // Mock Refinement Response for now (or call real endpoint if exists)
-        // For the purpose of this task, we acknowledge the feedback.
-        setTimeout(() => {
+        try {
+            const res = await fetch("/api/assistant/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: updatedMessages,
+                    expertAnalysis: expertAnalysis
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.reply) {
+                addWizardMessage({
+                    role: 'assistant',
+                    content: data.reply
+                });
+
+                // EXECUTE INSTRUCTIONS FROM JSON COMMAND
+                if (data.command) {
+                    if (data.command.action === 'deploy_agents') {
+                        setCampaignConfig(prev => ({
+                            ...prev,
+                            outboundVoice: true,
+                            emailSequence: true
+                        }));
+                        toast.success("Agents Deployed", { description: "Outbound Voice and Email channels activated." });
+                    } else if (data.command.action === 'refine_emails' && data.command.tone) {
+                        setEmailTone(data.command.tone);
+                        toast.success("Tone Adjusted", { description: `Email sequence tone set to: ${data.command.tone}` });
+                    }
+                }
+
+            } else {
+                addWizardMessage({
+                    role: 'assistant',
+                    content: "I encountered an error analyzing your request. Please try again."
+                });
+            }
+        } catch (error) {
+            console.error("Chat error:", error);
             addWizardMessage({
                 role: 'assistant',
-                content: "Understood. I'm calibrating the strategy parameters based on your input. You can approve the strategy on the right when ready."
+                content: "Network error. Please check your connection."
             });
-        }, 1000);
+        }
     };
 
     return (
@@ -171,7 +218,7 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
 
             {/* z-[9999] Modal with High Priority Isolation - Overriding default Dialog positioning */}
             <DialogPortal>
-                <DialogPrimitive.Content className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 outline-none focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+                <DialogPrimitive.Content className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 outline-none focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 !top-0 !left-0 !translate-x-0 !translate-y-0">
 
                     {/* Backdrop overlay - z-[9998] */}
                     <div
