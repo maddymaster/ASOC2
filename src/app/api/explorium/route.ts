@@ -22,9 +22,7 @@ export async function POST(request: Request) {
         // In a real "Discovery" flow, we'd search businesses by industry.
         // Since we are migrating from Apollo (Search), we simulate "finding" companies to "Match".
         const seedCompanies = [
-            { name: `${strategy.industry} Solutions`, domain: "solutions.example.com" },
-            { name: `Global ${strategy.industry} Inc`, domain: "global.example.com" },
-            { name: "Innovate AI", domain: "innovate.ai" }
+            { name: `${strategy.industry} Global`, domain: "global.example.com" }
         ];
 
         const leads: any[] = [];
@@ -39,12 +37,12 @@ export async function POST(request: Request) {
                 if (!businessId) continue;
 
                 // Step B: Match/Search Prospects in that Business
-                const prospectsRes = await ExploriumService.matchProspects(businessId, strategy.targetRole || "Decision Maker");
+                const prospectsRes = await ExploriumService.matchProspects(businessId, strategy.targetRole || "VP of Sales");
 
                 // Assuming response structure has 'prospects' array
                 const rawProspects = prospectsRes.prospects || [];
 
-                for (const p of rawProspects.slice(0, 2)) { // Limit to 2 per company to save credits
+                for (const p of rawProspects.slice(0, 5)) { // Limit to 5 for Lead Gen Test
                     // Step C: Enrich Prospect
                     const prospectId = p.prospect_id || p.id;
                     if (!prospectId) continue;
@@ -91,23 +89,25 @@ export async function POST(request: Request) {
             }
         }
 
-        // If no actual API calls succeeded (likely due to Mock Discovery), generate a Test Lead
+        // If no actual API calls succeeded (likely due to Mock Discovery), generate 5 Test Leads
         if (leads.length === 0) {
-            console.log("[Explorium] No live leads found, generating 1 Test Lead as requested.");
-            const testLead = await prisma.lead.upsert({
-                where: { email: "test.lead@explorium.io" },
-                update: {},
-                create: {
-                    email: "test.lead@explorium.io",
-                    name: "Test Explorium Lead",
-                    company: "Explorium Test Corp",
-                    role: strategy.targetRole || "Head of Testing",
-                    status: 'NEW',
-                    score: 85,
-                    source: 'explorium-test'
-                }
-            });
-            leads.push(testLead);
+            console.log("[Explorium] No live leads found, generating 5 Test Leads as requested.");
+            for (let i = 1; i <= 5; i++) {
+                const testLead = await prisma.lead.upsert({
+                    where: { email: `test.lead.${i}@explorium.io` },
+                    update: {},
+                    create: {
+                        email: `test.lead.${i}@explorium.io`,
+                        name: `Test Explorium Lead ${i}`,
+                        company: "Explorium Test Corp",
+                        role: strategy.targetRole || "Head of Testing",
+                        status: 'NEW',
+                        score: 85 + i,
+                        source: 'explorium-test'
+                    }
+                });
+                leads.push(testLead);
+            }
         }
 
         return NextResponse.json({

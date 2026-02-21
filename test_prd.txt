@@ -1,17 +1,6 @@
-Product Name: SecureFi
-
-Overview:
-SecureFi is a real-time smart contract monitoring and threat detection platform for DeFi protocols. We help decentralized exchanges and lending platforms prevent hacks and exploits before they drain funds.
-
-Key Features:
-- 24/7 Mempool Monitoring: Detect malicious transactions before they are confirmed.
-- AI-Powered Anomaly Detection: Identify irregular trading patterns.
-- Automated Pause Functionality: Smart contracts can auto-pause if a high-severity threat is detected.
-
-Target Audience:
-- DeFi Protocols (TVL > $50M)
-- Institutional Crypto Custodians
-- Web3 Audit Firms
-
-Value Proposition:
-Prevent multimillion-dollar potential hacks with $<0.1s latency detection. Reduce insurance premiums for protocols.
+Company: Mission Control Inc
+Product: Agentic Sales Operating System
+Value Proposition: Replaces Apollo and generic outreach with hyper-personalized, context-grounded AI sequences.
+Industry Target: Enterprise SaaS and B2B Technology.
+Roles: VP of Sales, CRO.
+Pain Points: Low cold email conversion, lack of context in outreach, high SDR turnover.

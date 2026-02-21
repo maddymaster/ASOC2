@@ -92,13 +92,14 @@ export function CampaignWizardModal() {
 
                 // Supervisor Prompt: Interactive Refinement (3-Point Summary)
                 const primeSector = data.analysis.sectors[0];
+                const targetSector = data.analysis.targetIndustryPersonas?.[0]?.industry || primeSector?.sector || "your industry";
                 const refinementMsg = `I’ve analyzed your ${uploadedFiles.length > 1 ? 'documents' : 'document'}. Here is the strategy summary:
 
 1. **Core Product Value**: ${data.analysis.coreProductValue || data.analysis.summary}
-2. **Target Industry/Personas**: ${data.analysis.targetIndustryPersonas?.[0]?.industry || primeSector?.sector} (Roles: ${(data.analysis.targetIndustryPersonas?.[0]?.personas || primeSector?.targetRoles || []).join(', ')})
+2. **Target Industry/Personas**: ${targetSector} (Roles: ${(data.analysis.targetIndustryPersonas?.[0]?.personas || primeSector?.targetRoles || []).join(', ')})
 3. **Specific Sales Pain Points**: ${(data.analysis.specificSalesPainPoints || primeSector?.painPoints || []).join(', ')}
 
-Does this align with your mission goals, or shall we adjust the parameters?`;
+I have captured your mission. Ready to generate leads from Explorium.ai and draft your outreach. Shall I proceed?`;
 
                 addWizardMessage({
                     role: 'assistant',
@@ -137,17 +138,39 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
 
         if (isStrategyApproved) return;
 
-        if (userMsg.length > 50) {
-            const textFile = new File([userMsg], "pasted_text.txt", { type: "text/plain" });
-            setUploadedFiles([textFile]);
+        // SMART CHUNKING SYSTEM for LARGE-SCALE PASTE HANDLING
+        // ~4 chars per token. 2,000 tokens ≈ 8,000 chars.
+        const CHUNK_SIZE_CHARS = 8000;
+
+        if (userMsg.length > CHUNK_SIZE_CHARS) {
             addWizardMessage({
                 role: 'assistant',
-                content: "I have received your text input. Please click 'Analyze Context' on the right to process this new information."
+                content: "I've detected a highly detailed prompt. Activating Smart Chunking to process this vast context..."
+            });
+
+            // Split into manageable chunks
+            const chunks: File[] = [];
+            let currentIdx = 0;
+            let chunkNum = 1;
+
+            while (currentIdx < userMsg.length) {
+                const chunkText = userMsg.substring(currentIdx, currentIdx + CHUNK_SIZE_CHARS);
+                const textFile = new File([chunkText], `extracted_context_part_${chunkNum}.txt`, { type: "text/plain" });
+                chunks.push(textFile);
+                currentIdx += CHUNK_SIZE_CHARS;
+                chunkNum++;
+            }
+
+            setUploadedFiles(prev => [...prev, ...chunks]);
+
+            addWizardMessage({
+                role: 'assistant',
+                content: `Chunking complete. Context divided into ${chunks.length} sequential segments. Please click 'Analyze Context' on the right to process the unified intelligence.`
             });
             return;
         }
 
-        // Append user message immediately
+        // Standard short message processing
         const updatedMessages = [...wizardMessages, { role: 'user', content: userMsg }];
 
         try {
@@ -228,7 +251,7 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
                     />
 
                     {/* Modal Box - z-[10000] - 3-Column Layout */}
-                    <div className="relative z-[10000] w-full max-w-7xl h-[85vh] bg-slate-950 rounded-2xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="relative z-[10000] w-full max-w-5xl h-[85vh] bg-slate-950 rounded-2xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
                         {/* Header */}
                         <div className="flex items-center justify-between px-8 py-5 border-b border-slate-800 bg-slate-900/50">
@@ -262,12 +285,12 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
                                         <Bot className="h-4 w-4 text-purple-500" /> Agent Supervisor
                                     </h3>
                                 </div>
-                                <ScrollArea className="flex-1 p-4">
+                                <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col">
                                     <div className="space-y-4">
                                         {wizardMessages.map((msg, i) => (
-                                            <div key={i} className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
+                                            <div key={i} className={cn("flex gap-3 w-full", msg.role === 'user' ? "flex-row-reverse" : "")}>
                                                 <div className={cn(
-                                                    "p-3 rounded-lg text-sm max-w-[90%]",
+                                                    "p-3 rounded-lg text-sm max-w-[85%] break-words whitespace-pre-wrap [word-break:break-word]",
                                                     msg.role === 'assistant' ? "bg-slate-800 text-slate-200" : "bg-purple-600 text-white"
                                                 )}>
                                                     {msg.content}
@@ -275,7 +298,7 @@ Does this align with your mission goals, or shall we adjust the parameters?`;
                                             </div>
                                         ))}
                                     </div>
-                                </ScrollArea>
+                                </div>
                                 <div className="p-4 border-t border-slate-800 bg-slate-900/40">
                                     <div className="flex gap-2">
                                         <Input

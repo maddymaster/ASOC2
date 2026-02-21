@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Ensure 1.5 Pro for best multimodal
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Ensure 2.5 Pro for best multimodal
 
         console.log(`[Analyze] Processing ${fileCount} files...`);
 

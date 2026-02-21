@@ -107,8 +107,11 @@ export function EmailLaboratory() {
         });
     };
 
-    const handleSend = async () => {
+    const handleSendTest = async () => {
         if (!selectedDraft) return;
+
+        const testEmail = window.prompt("Enter email address to receive the test send:", selectedDraft.Lead?.email);
+        if (!testEmail) return;
 
         const sendPromise = async () => {
             // 1. Send via API
@@ -116,14 +119,17 @@ export function EmailLaboratory() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    to: selectedDraft.Lead?.email,
+                    to: testEmail,
                     subject: selectedDraft.subject,
                     html: selectedDraft.body.replace(/\n/g, '<br/>'), // Simple formatting
-                    // We rely on Env vars for SMTP/Resend creds to keep frontend secure
+                    leadId: selectedDraft.leadId
                 })
             });
 
-            if (!res.ok) throw new Error("Failed to send email Provider");
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to send email via Provider");
+            }
 
             // 2. Update DB Status
             await handleUpdate(selectedDraft.id, { status: 'SENT' });
@@ -132,9 +138,9 @@ export function EmailLaboratory() {
         toast.promise(
             sendPromise(),
             {
-                loading: 'Dispatching via SMTP/Resend...',
-                success: 'Email Sent Successfully!',
-                error: 'Failed to dispatch email'
+                loading: 'Dispatching via Resend...',
+                success: 'Test Email Sent Successfully!',
+                error: (err) => `Failed to dispatch: ${err.message}`
             }
         );
     };
@@ -200,9 +206,9 @@ export function EmailLaboratory() {
                                 </div>
                                 <div className="flex gap-2">
                                     {selectedDraft.status !== 'SENT' && (
-                                        <Button onClick={handleSend} className="bg-primary hover:bg-primary/90">
+                                        <Button onClick={handleSendTest} className="bg-primary hover:bg-primary/90">
                                             <Send className="w-4 h-4 mr-2" />
-                                            Approve & Send
+                                            Send Test
                                         </Button>
                                     )}
                                 </div>

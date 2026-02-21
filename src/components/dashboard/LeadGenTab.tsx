@@ -44,19 +44,19 @@ export function LeadGenTab() {
 
         addActivityEvent({
             type: 'info',
-            message: `Fetching leads from Apollo for ${strategy.industry} sector`,
+            message: `Fetching leads from Explorium for ${strategy.industry} sector`,
             details: `Target role: ${strategy.targetRole}`
         });
 
         try {
-            // const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
+            const savedConfig = JSON.parse(localStorage.getItem("mission_control_config") || "{}");
 
-            const res = await fetch('/api/explorium', { // Switched to Explorium
+            const res = await fetch('/api/explorium', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     strategy,
-                    // apiKey: savedConfig.apolloKey // No longer needed on client, env var used on server
+                    apiKey: savedConfig.apolloKey // Optional fallback passed from UI if needed
                 })
             });
 
@@ -93,30 +93,30 @@ export function LeadGenTab() {
 
                 addActivityEvent({
                     type: 'error',
-                    message: 'Apollo API request failed',
+                    message: 'Explorium API request failed',
                     details: errorMsg
                 });
 
                 if (data.errorType === 'auth') {
                     toast.error("Integration Error", {
-                        description: "Valid Apollo API status check failed. Check settings.",
+                        description: "Valid Explorium API status check failed. Check settings.",
                         action: {
                             label: "Settings",
                             onClick: () => console.log("Navigate to settings")
                         }
                     });
                 } else if (data.errorType === 'rate_limit') {
-                    toast.warning("Apollo API Rate Limit", {
+                    toast.warning("Explorium API Rate Limit", {
                         description: `Usage limit reached. Auto-retrying in ${data.retryAfter || 60}s...`,
                         duration: 5000
                     });
                 } else if (data.message && data.message.includes("401")) {
                     toast.error("Authentication Failed", {
-                        description: "Your Apollo Key is invalid or expired."
+                        description: "Your Explorium Key is invalid or expired."
                     });
                 } else {
                     toast.error("Lead Fetch Failed", {
-                        description: errorMsg || "Unknown Apollo API error. Please try again."
+                        description: errorMsg || "Unknown Explorium API error. Please try again."
                     });
                 }
             }
@@ -199,7 +199,8 @@ export function LeadGenTab() {
                                     contactName: lead.name,
                                     role: (lead as any).role,
                                     rationale: scoreData.reasoning,
-                                    valueProp: strategy.rationale
+                                    valueProp: strategy.rationale,
+                                    tone: emailTone
                                 })
                             });
 
@@ -245,7 +246,7 @@ export function LeadGenTab() {
 
                 const data = await response.json();
 
-                // Add to Email Queue (Global State)
+                // Add to Email Queue (Global State) - leaving for backwards compatibility
                 const newDraft: any = {
                     id: Math.random().toString(36).substr(2, 9),
                     leadId: lead.id,
@@ -258,8 +259,8 @@ export function LeadGenTab() {
 
                 setEmailQueue(prev => [newDraft, ...prev]);
 
-                // Switch tabs to Email Lab to view the draft
-                setActiveTab('email-campaigns');
+                // Switch tabs to Email Lab to view the actual DB draft
+                setActiveTab('email-lab');
 
                 return data;
             },
@@ -360,7 +361,7 @@ export function LeadGenTab() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold text-white">{leads.length}</div>
-                        <p className="text-xs text-slate-500 mt-1">From Apollo.io</p>
+                        <p className="text-xs text-slate-500 mt-1">From Explorium.ai</p>
                     </CardContent>
                 </Card>
 
@@ -471,7 +472,7 @@ export function LeadGenTab() {
                         ) : leads.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 text-center">
                                 <UsersIcon className="h-12 w-12 text-slate-600 mb-4" />
-                                <p className="text-slate-300">No leads found. Click "Refresh Leads" to fetch from Apollo.</p>
+                                <p className="text-slate-300">No leads found. Click "Refresh Leads" to fetch from Explorium.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -14,12 +14,15 @@ export class DeepResearchService {
         tone: string | null = null
     ) {
         // Mock or Real Logic depending on API Key presence
-        const toneDirective = tone ? `Tone: The email MUST be ${tone}.` : "Tone: Professional and persuasive.";
-        const prompt = `Draft a cold email to ${contactName}, ${role} at ${companyName}.
+        const toneDirective = tone ? `Tone: The emails MUST be ${tone}.` : "Tone: Professional and persuasive.";
+        const prompt = `Draft a 3-step cold email sequence for ${contactName}, ${role} at ${companyName}.
         Rationale: ${rationale}
         Value Prop: ${valueProp}
         ${toneDirective}
-        Keep it under 150 words.`;
+        Step 1: Initial outreach (under 150 words).
+        Step 2: Value-add follow-up 3 days later (under 100 words).
+        Step 3: Break-up / Final attempt 7 days later (under 100 words).
+        Format the response clearly with "Step 1: [Subject Line]\n\n[Body]", "Step 2: ...", etc.`;
 
         let emailBody = "";
         try {
