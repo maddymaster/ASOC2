@@ -1,8 +1,8 @@
 FROM node:20-slim AS base
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apt-get update -y && apt-get install -y openssl
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -39,8 +39,6 @@ RUN npm run build
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
