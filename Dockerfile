@@ -23,8 +23,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client (Critical step often missed)
+# Generate SQLite Database inside the container
+ENV DATABASE_URL="file:./prisma/dev.db"
 RUN npx prisma generate
+RUN npx prisma db push
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
@@ -48,6 +50,9 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
+# Copy the standalone SQLite database and schema
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+ENV DATABASE_URL="file:./prisma/dev.db"
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
