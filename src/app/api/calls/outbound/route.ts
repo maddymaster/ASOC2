@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Retell from 'retell-sdk';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
     try {
@@ -15,6 +16,20 @@ export async function POST(request: Request) {
                 success: false,
                 error: "Retell API Key or Agent ID not configured"
             }, { status: 500 });
+        }
+
+        // 2. Throttling Authentication & State Guard
+        if (leadId) {
+            const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+            if (lead && lead.lastCallAt) {
+                const hoursSinceLastCall = (new Date().getTime() - lead.lastCallAt.getTime()) / (1000 * 60 * 60);
+                if (hoursSinceLastCall < 24) {
+                    return NextResponse.json({
+                        success: false,
+                        error: "Strict Throttling Active: Lead was already contacted within the last 24 hours."
+                    }, { status: 429 });
+                }
+            }
         }
 
         // 2. Initialize SDK
@@ -44,6 +59,17 @@ export async function POST(request: Request) {
         });
 
         console.log("Retell Outbound Call Initiated:", callResponse.call_id);
+
+        if (leadId) {
+            await prisma.lead.update({
+                where: { id: leadId },
+                data: {
+                    lastCallAt: new Date(),
+                    callCount: { increment: 1 },
+                    status: 'CONTACTED'
+                }
+            });
+        }
 
         return NextResponse.json({
             success: true,

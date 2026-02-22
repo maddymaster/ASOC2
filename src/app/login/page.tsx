@@ -1,34 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Zap, Loader2, CheckCircle2 } from "lucide-react";
+import { Zap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { SignIn } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-    const [loading, setLoading] = useState(false);
-    const [sent, setSent] = useState(false);
-    const router = useRouter();
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            setSent(true);
-
-            // Auto-redirect for demo convenience
-            setTimeout(() => {
-                router.push("/dashboard");
-            }, 2000);
-        }, 1500);
-    };
-
     return (
         <div className="min-h-screen flex bg-black text-white selection:bg-purple-500/30">
 
@@ -72,44 +50,27 @@ export default function LoginPage() {
                         </Button>
                     </Link>
                 </div>
-                <div className="max-w-[350px] w-full space-y-8">
-                    <div className="space-y-2 text-center">
-                        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-                        <p className="text-muted-foreground">Enter your email to sign in to your account</p>
-                    </div>
-
-                    {!sent ? (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Input
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    required
-                                    className="bg-white/5 border-white/10 h-10"
-                                />
-                            </div>
-                            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sign In with Email"}
-                            </Button>
-                        </form>
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-center space-y-4 py-8 bg-white/5 rounded-xl border border-white/10"
-                        >
-                            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
-                            <div>
-                                <h3 className="text-xl font-bold">Check your email</h3>
-                                <p className="text-sm text-muted-foreground mt-2">We sent you a login link.</p>
-                                <p className="text-xs text-muted-foreground mt-4 animate-pulse">Redirecting to Dashboard...</p>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    <div className="text-center text-sm text-muted-foreground">
-                        Don&apos;t have an account? <Link href="/signup" className="underline hover:text-white">Sign up</Link>
-                    </div>
+                <div className="max-w-[400px] w-full flex flex-col items-center justify-center">
+                    <SignIn
+                        appearance={{
+                            elements: {
+                                card: "bg-transparent shadow-none w-full",
+                                headerTitle: "text-white text-2xl font-bold",
+                                headerSubtitle: "text-slate-400",
+                                socialButtonsBlockButton: "text-white border-white/10 hover:bg-white/5",
+                                socialButtonsBlockButtonText: "text-white font-medium",
+                                dividerText: "text-slate-500",
+                                dividerLine: "bg-white/10",
+                                formFieldLabel: "text-slate-300",
+                                formFieldInput: "bg-white/5 border-white/10 text-white placeholder:text-slate-500",
+                                formButtonPrimary: "bg-purple-600 hover:bg-purple-700 text-white shadow-none",
+                                footerActionText: "text-slate-400",
+                                footerActionLink: "text-purple-400 hover:text-purple-300",
+                                identityPreviewText: "text-white",
+                                identityPreviewEditButton: "text-purple-400"
+                            }
+                        }}
+                    />
                 </div>
             </div>
         </div>

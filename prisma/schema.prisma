@@ -36,14 +36,31 @@ model AuditLog {
   createdAt DateTime @default(now())
 }
 
+model UserPreference {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  User            User     @relation(fields: [userId], references: [id])
+  missionStyle       String   @default("Consultative") // Aggressive, Consultative, Educational
+  maxEmailsPerDay    Int      @default(50)
+  maxCallsPerDay     Int      @default(20)
+  emailFollowUpCount Int      @default(7)
+  emailDelayDays     Int      @default(3)
+  callFollowUpCount  Int      @default(3)
+  callDelayDays      Int      @default(2)
+  createdAt          DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 model User {
-  id        String        @id @default(uuid())
-  email     String        @unique
-  name      String
-  role      String        @default("SALES_AGENT") // SUPER_ADMIN, ADMIN, SALES_AGENT
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  sessions  ChatSession[]
+  id             String          @id @default(uuid())
+  clerkUserId    String?         @unique // Map to Clerk Auth
+  email          String          @unique
+  name           String
+  role           String          @default("SALES_AGENT") // SUPER_ADMIN, ADMIN, SALES_AGENT
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  sessions       ChatSession[]
+  UserPreference UserPreference?
 }
 
 model ChatSession {
@@ -76,6 +93,10 @@ model Lead {
   source      String? // "outbound", "inbound", "referral"
   score       Int          @default(0)
   lastContact DateTime?
+  lastEmailAt DateTime?
+  lastCallAt  DateTime?
+  emailCount  Int          @default(0)
+  callCount   Int          @default(0)
   meetingTime DateTime? // Populated by Calendly
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

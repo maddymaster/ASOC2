@@ -16,11 +16,16 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useState } from "react";
+import { PreferencesModal } from "./PreferencesModal";
 
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
     const { setActiveTab, resetCombinedState } = useMissionControl();
+    const { user } = useUser();
+    const [preferencesOpen, setPreferencesOpen] = useState(false);
 
     const navItems = [
         { id: "strategy", label: "Strategy", icon: Target, href: "/dashboard" },
@@ -84,13 +89,24 @@ export function Sidebar() {
 
             {/* Footer Actions */}
             <div className="p-4 border-t border-slate-800 space-y-2">
+                <div className="flex items-center gap-3 px-3 py-2 mb-2 rounded-lg bg-slate-900/50 border border-slate-800">
+                    <UserButton appearance={{ elements: { userButtonAvatarBox: "h-8 w-8" } }} />
+                    <span className="text-sm font-medium text-slate-300 truncate">
+                        {user ? user.fullName || user.username || "Sales Agent" : "Loading..."}
+                    </span>
+                </div>
+
                 <Link href="/dashboard/admin">
                     <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-900">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin
                     </Button>
                 </Link>
-                <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-900">
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-900"
+                    onClick={() => setPreferencesOpen(true)}
+                >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                 </Button>
@@ -108,6 +124,8 @@ export function Sidebar() {
                     Reset System
                 </Button>
             </div>
+
+            <PreferencesModal open={preferencesOpen} onOpenChange={setPreferencesOpen} />
         </aside>
     );
 }

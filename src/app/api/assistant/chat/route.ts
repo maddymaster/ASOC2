@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
     try {
+        const { userId } = await auth();
+        let missionStyle = "Consultative";
+        let maxEmailsPerDay = 50;
+        let maxCallsPerDay = 20;
+
+        if (userId) {
+            const user = await prisma.user.findUnique({
+                where: { clerkUserId: userId },
+                include: { UserPreference: true }
+            });
+            if (user?.UserPreference) {
+                missionStyle = user.UserPreference.missionStyle;
+                maxEmailsPerDay = user.UserPreference.maxEmailsPerDay;
+                maxCallsPerDay = user.UserPreference.maxCallsPerDay;
+            }
+        }
+
         const body = await request.json();
         const { messages, expertAnalysis } = body;
 
@@ -38,6 +57,13 @@ PRODUCT ANALYSIS CONTEXT:
 
         const systemPrompt = `
 You are a Sales Strategy Expert.
+
+AGENT CONFIGURATION:
+- Mission Style: ${missionStyle}
+- Daily Email Limit: ${maxEmailsPerDay}
+- Daily Call Limit: ${maxCallsPerDay}
+
+When generating strategy or communicating the execution plan, strictly adapt your messaging approach to the ${missionStyle} mission style and abide by the established daily volume constraints.
 
 IDENTITY: 
 If asked 'Who are you?', you MUST respond exactly: "I am your Mission Control Supervisor. I analyze your product specifications to orchestrate autonomous lead generation, voice outreach, and email campaigns."
