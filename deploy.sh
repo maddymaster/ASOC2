@@ -45,8 +45,9 @@ fi
 echo "[1/2] Deploying to Cloud Run..."
 echo "Using source-based deployment with env.yaml..."
 
-# Extract all NEXT_PUBLIC_ variables for the Next.js build phase
-BUILD_ENV_VARS=$(grep '^NEXT_PUBLIC_' .env.local | tr '\n' ',' | sed 's/,$//')
+# Extract all NEXT_PUBLIC_ variables directly into a .env.production file
+# This bypasses strict Docker ARG requirements by injecting straight into Next.js builder
+grep '^NEXT_PUBLIC_' .env.local > .env.production
 
 # Note: This command builds the container using the Dockerfile in the current directory
 # and deploys it to Cloud Run.
@@ -58,11 +59,11 @@ gcloud run deploy $SERVICE_NAME \
     --platform managed \
     --allow-unauthenticated \
     --service-account "mission-control-deployer@$PROJECT_ID.iam.gserviceaccount.com" \
-    --env-vars-file env.yaml \
-    --set-build-env-vars="$BUILD_ENV_VARS"
+    --env-vars-file env.yaml
 
 # Clean up
 rm env.yaml
+rm .env.production
 
 echo "=================================================="
 echo "Deployment Initiated!"
