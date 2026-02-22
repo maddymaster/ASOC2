@@ -49,6 +49,11 @@ echo "Using source-based deployment with env.yaml..."
 # This bypasses strict Docker ARG requirements by injecting straight into Next.js builder
 grep '^NEXT_PUBLIC_' .env.local > .env.production
 
+# Create a temporary .gcloudignore to explicitly whitelist .env.production
+# .gitignore ignores .env* by default, which blocks the Next.js build config from uploading
+cp .gitignore .gcloudignore
+echo "!.env.production" >> .gcloudignore
+
 # Note: This command builds the container using the Dockerfile in the current directory
 # and deploys it to Cloud Run.
 gcloud run deploy $SERVICE_NAME \
@@ -64,6 +69,7 @@ gcloud run deploy $SERVICE_NAME \
 # Clean up
 rm env.yaml
 rm .env.production
+rm .gcloudignore
 
 echo "=================================================="
 echo "Deployment Initiated!"
